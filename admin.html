@@ -10,98 +10,108 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
-  --ink: #0e0d0c;
-  --cream: #F5F0E8;
-  --clay: #C4622D;
-  --charcoal: #1E1D1B;
-  --mid: #2A2926;
-  --sand: #B89F87;
-  --serif: 'Cormorant Garamond', serif;
-  --sans: 'DM Sans', sans-serif;
-  --sidebar-w: 220px;
+  --ink: #0e0d0c; --cream: #F5F0E8; --clay: #C4622D;
+  --charcoal: #1E1D1B; --mid: #2A2926; --sand: #B89F87;
+  --serif: 'Cormorant Garamond', serif; --sans: 'DM Sans', sans-serif;
+  --sidebar-w: 220px; --filter-h: 64px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--ink); color: var(--cream); font-family: var(--sans); min-height: 100vh; display: flex; }
 
 /* Sidebar */
-.sidebar {
-  width: var(--sidebar-w); background: var(--charcoal);
-  border-right: 0.5px solid rgba(245,240,232,.08);
-  position: fixed; top: 0; left: 0; bottom: 0;
-  display: flex; flex-direction: column; overflow-y: auto; z-index: 100;
-}
+.sidebar { width: var(--sidebar-w); background: var(--charcoal); border-right: 0.5px solid rgba(245,240,232,.08); position: fixed; top: 0; left: 0; bottom: 0; display: flex; flex-direction: column; overflow-y: auto; z-index: 200; }
 .sidebar-logo { padding: 24px 20px 20px; border-bottom: 0.5px solid rgba(245,240,232,.08); }
 .sidebar-logo-wordmark { font-family: var(--serif); font-size: 22px; font-weight: 300; color: var(--cream); letter-spacing: .5px; }
 .sidebar-logo-sub { font-size: 11px; color: rgba(245,240,232,.35); letter-spacing: .5px; text-transform: uppercase; margin-top: 2px; }
 .sidebar-nav { padding: 16px 0; flex: 1; }
-.sidebar-nav a {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 20px; font-size: 14px; color: rgba(245,240,232,.5);
-  text-decoration: none; transition: color .2s, background .2s;
-  border-left: 2px solid transparent;
-}
+.sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 14px; color: rgba(245,240,232,.5); text-decoration: none; transition: color .2s, background .2s; border-left: 2px solid transparent; }
 .sidebar-nav a:hover { color: rgba(245,240,232,.85); background: rgba(245,240,232,.03); }
 .sidebar-nav a.active { color: var(--cream); border-left-color: var(--clay); background: rgba(245,240,232,.04); }
 .sidebar-footer { padding: 16px 20px; border-top: 0.5px solid rgba(245,240,232,.08); font-size: 11px; color: rgba(245,240,232,.3); word-break: break-all; }
 
-/* Main */
-.main-content { margin-left: var(--sidebar-w); flex: 1; padding: 40px 48px; max-width: calc(100vw - var(--sidebar-w)); }
+/* Filter bar */
+.filter-bar { position: sticky; top: 0; z-index: 100; background: var(--charcoal); border-bottom: 0.5px solid rgba(245,240,232,.1); padding: 12px 48px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.filter-group { display: flex; align-items: center; gap: 8px; }
+.filter-label { font-size: 11px; color: rgba(245,240,232,.4); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+.filter-select, .filter-input-date { background: rgba(245,240,232,.06); border: 0.5px solid rgba(245,240,232,.15); color: var(--cream); font-family: var(--sans); font-size: 13px; padding: 6px 10px; border-radius: 8px; outline: none; cursor: pointer; }
+.filter-select:focus, .filter-input-date:focus { border-color: rgba(245,240,232,.35); }
+.filter-custom { display: none; align-items: center; gap: 6px; }
+.filter-custom.visible { display: flex; }
+.filter-apply { background: var(--clay); border: none; color: var(--cream); font-family: var(--sans); font-size: 13px; font-weight: 500; padding: 7px 18px; border-radius: 8px; cursor: pointer; transition: opacity .2s; }
+.filter-apply:hover { opacity: .85; }
+.filter-period { font-size: 11px; color: rgba(245,240,232,.35); margin-left: auto; white-space: nowrap; }
 
-/* Header */
-.page-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 40px; padding-bottom: 24px;
-  border-bottom: 0.5px solid rgba(245,240,232,.08);
-}
+/* Main */
+.main-content { margin-left: var(--sidebar-w); flex: 1; padding: 0; max-width: calc(100vw - var(--sidebar-w)); }
+.main-inner { padding: 40px 48px; }
+
+/* Page header */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 0.5px solid rgba(245,240,232,.08); }
 .page-header h1 { font-family: var(--serif); font-size: 32px; font-weight: 300; }
 .page-header-sub { font-size: 13px; color: rgba(245,240,232,.4); margin-top: 4px; }
-.btn-refresh {
-  background: rgba(245,240,232,.06); border: 0.5px solid rgba(245,240,232,.15);
-  color: rgba(245,240,232,.7); padding: 8px 18px; border-radius: 20px;
-  font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all .2s;
-}
+.btn-refresh { background: rgba(245,240,232,.06); border: 0.5px solid rgba(245,240,232,.15); color: rgba(245,240,232,.7); padding: 8px 18px; border-radius: 20px; font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all .2s; }
 .btn-refresh:hover { background: rgba(245,240,232,.1); color: var(--cream); }
 
 /* Sections */
-.section { margin-bottom: 64px; scroll-margin-top: 24px; }
-.section-title {
-  font-family: var(--serif); font-size: 24px; font-weight: 300;
-  color: var(--cream); margin-bottom: 20px; padding-bottom: 10px;
-  border-bottom: 0.5px solid rgba(245,240,232,.08);
-}
+.section { margin-bottom: 64px; scroll-margin-top: 80px; }
+.section-title { font-family: var(--serif); font-size: 24px; font-weight: 300; color: var(--cream); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 0.5px solid rgba(245,240,232,.08); }
+.section-subtitle { font-family: var(--serif); font-size: 18px; font-weight: 300; color: rgba(245,240,232,.7); margin-bottom: 12px; margin-top: 24px; }
 
 /* Stat grid */
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.stat-card {
-  background: rgba(245,240,232,.04); border: 0.5px solid rgba(245,240,232,.09);
-  border-radius: 12px; padding: 16px 18px;
-}
-.stat-label { font-size: 12px; color: rgba(245,240,232,.45); margin-bottom: 8px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat-card { background: rgba(245,240,232,.04); border: 0.5px solid rgba(245,240,232,.09); border-radius: 12px; padding: 16px 18px; }
+.stat-label { font-size: 12px; color: rgba(245,240,232,.45); margin-bottom: 6px; }
 .stat-value { font-size: 28px; font-family: var(--serif); font-weight: 300; line-height: 1; }
 .stat-value.sm { font-size: 20px; }
+.stat-prev { font-size: 11px; color: rgba(245,240,232,.3); margin-top: 4px; }
+.stat-delta { font-size: 12px; margin-top: 3px; min-height: 16px; }
+.delta-up { color: #50d278; }
+.delta-dn { color: #E05050; }
 
 /* Tables */
-.table-wrap {
-  background: rgba(245,240,232,.03); border: 0.5px solid rgba(245,240,232,.08);
-  border-radius: 12px; overflow: hidden; margin-bottom: 20px;
-}
+.table-wrap { background: rgba(245,240,232,.03); border: 0.5px solid rgba(245,240,232,.08); border-radius: 12px; overflow: hidden; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.data-table th {
-  text-align: left; font-size: 11px; letter-spacing: .5px; text-transform: uppercase;
-  color: rgba(245,240,232,.4); font-weight: 400; padding: 8px 12px;
-  border-bottom: 0.5px solid rgba(245,240,232,.08);
-}
+.data-table th { text-align: left; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: rgba(245,240,232,.4); font-weight: 400; padding: 8px 12px; border-bottom: 0.5px solid rgba(245,240,232,.08); }
 .data-table td { padding: 10px 12px; border-bottom: 0.5px solid rgba(245,240,232,.05); color: rgba(245,240,232,.8); }
 .data-table tr:last-child td { border-bottom: none; }
 .data-table .rank { font-size: 11px; color: rgba(245,240,232,.3); width: 32px; }
 .data-table .num { text-align: right; font-family: var(--serif); font-size: 18px; color: var(--cream); }
+.tbl-pagination { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-top: 0.5px solid rgba(245,240,232,.06); }
+.tbl-btn { background: rgba(245,240,232,.06); border: 0.5px solid rgba(245,240,232,.12); color: rgba(245,240,232,.6); font-family: var(--sans); font-size: 12px; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all .15s; }
+.tbl-btn:hover:not(:disabled) { background: rgba(245,240,232,.1); color: var(--cream); }
+.tbl-btn:disabled { opacity: .3; cursor: default; }
+.tbl-actions { display: flex; gap: 6px; }
 
 /* Chart */
-.chart-wrap {
-  background: rgba(245,240,232,.03); border: 0.5px solid rgba(245,240,232,.08);
-  border-radius: 12px; padding: 20px; margin-bottom: 20px;
-}
+.chart-wrap { background: rgba(245,240,232,.03); border: 0.5px solid rgba(245,240,232,.08); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
 .chart-title { font-size: 13px; color: rgba(245,240,232,.5); margin-bottom: 16px; }
+
+/* Funnel */
+.funnel { background: rgba(245,240,232,.03); border: 0.5px solid rgba(245,240,232,.08); border-radius: 12px; padding: 20px; }
+.funnel-step { margin-bottom: 14px; }
+.funnel-step:last-child { margin-bottom: 0; }
+.funnel-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.funnel-lbl { font-size: 13px; color: rgba(245,240,232,.7); }
+.funnel-stat { font-family: var(--serif); font-size: 18px; color: var(--cream); }
+.funnel-pct-lbl { font-size: 11px; color: rgba(245,240,232,.35); margin-left: 6px; }
+.funnel-track { height: 26px; background: rgba(245,240,232,.05); border-radius: 4px; overflow: hidden; }
+.funnel-fill { height: 100%; border-radius: 4px; transition: width .6s ease; min-width: 2px; }
+
+/* Cohort */
+.cohort-wrap { background: rgba(245,240,232,.03); border: 0.5px solid rgba(245,240,232,.08); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+.cohort-wrap .data-table th, .cohort-wrap .data-table td { padding: 8px 10px; font-size: 12px; }
+
+/* B2B plan */
+.plan-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 0.5px solid rgba(245,240,232,.05); }
+.plan-row:last-child { border-bottom: none; }
+.plan-pill { font-size: 11px; font-weight: 500; letter-spacing: .4px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+.plan-pill.free { background: rgba(245,240,232,.08); color: rgba(245,240,232,.5); }
+.plan-pill.starter { background: rgba(80,140,255,.15); color: #7cb4ff; border: 0.5px solid rgba(80,140,255,.3); }
+.plan-pill.premium { background: rgba(196,98,45,.2); color: #e8834e; border: 0.5px solid rgba(196,98,45,.4); }
+
+/* Outreach button */
+.outreach-btn { background: rgba(196,98,45,.2); border: 0.5px solid rgba(196,98,45,.5); color: #e8834e; font-family: var(--sans); font-size: 12px; padding: 4px 12px; border-radius: 6px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.outreach-btn:hover { background: rgba(196,98,45,.35); }
 
 /* Map */
 #map-container { width: 100%; height: 520px; border-radius: 12px; overflow: hidden; border: 0.5px solid rgba(245,240,232,.08); }
@@ -109,17 +119,13 @@ body { background: var(--ink); color: var(--cream); font-family: var(--sans); mi
 .leaflet-popup-tip { background: #1E1D1B; }
 .leaflet-popup-content { font-family: 'DM Sans', sans-serif; font-size: 13px; }
 
-/* B2B plans */
-.plan-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 0.5px solid rgba(245,240,232,.05); }
-.plan-row:last-child { border-bottom: none; }
-.plan-pill { font-size: 11px; font-weight: 500; letter-spacing: .4px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
-.plan-pill.free    { background: rgba(245,240,232,.08); color: rgba(245,240,232,.5); }
-.plan-pill.starter { background: rgba(80,140,255,.15); color: #7cb4ff; border: 0.5px solid rgba(80,140,255,.3); }
-.plan-pill.premium { background: rgba(196,98,45,.2); color: #e8834e; border: 0.5px solid rgba(196,98,45,.4); }
-
 /* Skeleton */
 .skeleton { display: inline-block; background: rgba(245,240,232,.07); border-radius: 6px; animation: skp 1.4s ease-in-out infinite; }
 @keyframes skp { 0%,100% { opacity: .3; } 50% { opacity: .65; } }
+
+/* Util */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.tbl-container { margin-bottom: 20px; }
 </style>
 </head>
 <body>
@@ -130,120 +136,241 @@ body { background: var(--ink); color: var(--cream); font-family: var(--sans); mi
     <div class="sidebar-logo-sub">Panel Admin</div>
   </div>
   <nav class="sidebar-nav" id="sidebar-nav">
-    <a href="#resumen"  data-section="resumen"  class="active">Resumen</a>
-    <a href="#usuarios" data-section="usuarios">Usuarios</a>
-    <a href="#contenido" data-section="contenido">Contenido</a>
-    <a href="#social"   data-section="social">Social</a>
-    <a href="#b2b"      data-section="b2b">Negocios B2B</a>
-    <a href="#mapa"     data-section="mapa">Mapa</a>
+    <a href="#resumen"        data-section="resumen"        class="active">Resumen</a>
+    <a href="#usuarios"       data-section="usuarios">Usuarios</a>
+    <a href="#comportamiento" data-section="comportamiento">Comportamiento</a>
+    <a href="#contenido"      data-section="contenido">Contenido</a>
+    <a href="#social"         data-section="social">Social</a>
+    <a href="#b2b"            data-section="b2b">Negocios B2B</a>
+    <a href="#mapa"           data-section="mapa">Mapa</a>
   </nav>
   <div class="sidebar-footer" id="sidebar-email">—</div>
 </nav>
 
 <main class="main-content">
-  <div class="page-header">
-    <div>
-      <h1>Panel de administración</h1>
-      <div class="page-header-sub" id="last-updated">Cargando datos…</div>
+  <!-- Filter bar -->
+  <div class="filter-bar" id="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">Período</span>
+      <select class="filter-select" id="filter-preset" onchange="onPresetChange()">
+        <option value="7d">Últimos 7 días</option>
+        <option value="today">Hoy</option>
+        <option value="30d">Últimos 30 días</option>
+        <option value="90d">Últimos 90 días</option>
+        <option value="custom">Rango personalizado</option>
+      </select>
     </div>
-    <button class="btn-refresh" onclick="refreshAll()">↻ Actualizar</button>
+    <div class="filter-custom" id="filter-custom">
+      <input type="date" class="filter-input-date" id="filter-from">
+      <span style="color:rgba(245,240,232,.35);font-size:13px">→</span>
+      <input type="date" class="filter-input-date" id="filter-to">
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Ciudad</span>
+      <select class="filter-select" id="filter-city">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <button class="filter-apply" onclick="applyFilters()">Aplicar filtros</button>
+    <span class="filter-period" id="filter-period">—</span>
   </div>
 
-  <!-- Resumen -->
-  <section class="section" id="resumen">
-    <div class="section-title">Resumen</div>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Usuarios totales</div><div class="stat-value" id="r-users"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Posts totales</div><div class="stat-value" id="r-posts"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Restaurantes únicos</div><div class="stat-value" id="r-rests"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Negocios registrados</div><div class="stat-value" id="r-biz"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Activos hoy (DAU)</div><div class="stat-value" id="r-dau"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Posts hoy</div><div class="stat-value" id="r-posts-today"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-    </div>
-  </section>
-
-  <!-- Usuarios -->
-  <section class="section" id="usuarios">
-    <div class="section-title">Usuarios</div>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Total registrados</div><div class="stat-value" id="u-total"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Nuevos esta semana</div><div class="stat-value" id="u-new-week"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Nuevos este mes</div><div class="stat-value" id="u-new-month"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">DAU (hoy)</div><div class="stat-value" id="u-dau"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">WAU (7 días)</div><div class="stat-value" id="u-wau"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">MAU (30 días)</div><div class="stat-value" id="u-mau"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Inactivos +30 días</div><div class="stat-value" id="u-inactive"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-    </div>
-  </section>
-
-  <!-- Contenido -->
-  <section class="section" id="contenido">
-    <div class="section-title">Contenido</div>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Posts totales</div><div class="stat-value" id="c-total"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Últimos 7 días</div><div class="stat-value" id="c-7d"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Media posts/usuario/sem</div><div class="stat-value sm" id="c-avg"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">% con selfie</div><div class="stat-value" id="c-selfie"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Restaurantes únicos</div><div class="stat-value" id="c-rests"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-    </div>
-    <div class="chart-wrap">
-      <div class="chart-title">Posts por día — últimos 30 días</div>
-      <canvas id="posts-chart" height="90"></canvas>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+  <div class="main-inner">
+    <div class="page-header">
       <div>
-        <div style="font-family:var(--serif);font-size:18px;font-weight:300;margin-bottom:12px;color:rgba(245,240,232,.7)">Top 10 restaurantes</div>
-        <div class="table-wrap"><table class="data-table" id="top-rests"><tbody><tr><td><span class="skeleton" style="width:100%;height:14px;display:block"></span></td></tr></tbody></table></div>
+        <h1>Panel de administración</h1>
+        <div class="page-header-sub" id="last-updated">Cargando datos…</div>
       </div>
-      <div>
-        <div style="font-family:var(--serif);font-size:18px;font-weight:300;margin-bottom:12px;color:rgba(245,240,232,.7)">Top 10 platos</div>
-        <div class="table-wrap"><table class="data-table" id="top-dishes"><tbody><tr><td><span class="skeleton" style="width:100%;height:14px;display:block"></span></td></tr></tbody></table></div>
+      <button class="btn-refresh" onclick="applyFilters()">↻ Actualizar</button>
+    </div>
+
+    <!-- ── Resumen ─────────────────────────────────────────── -->
+    <section class="section" id="resumen">
+      <div class="section-title">Resumen</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Usuarios nuevos</div><div class="stat-value" id="r-users">—</div><div class="stat-delta" id="r-users-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Posts publicados</div><div class="stat-value" id="r-posts">—</div><div class="stat-delta" id="r-posts-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Restaurantes únicos</div><div class="stat-value" id="r-rests">—</div><div class="stat-delta" id="r-rests-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Negocios registrados</div><div class="stat-value" id="r-biz">—</div></div>
+        <div class="stat-card"><div class="stat-label">DAU media</div><div class="stat-value" id="r-dau">—</div><div class="stat-delta" id="r-dau-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Sesiones totales</div><div class="stat-value" id="r-sessions">—</div><div class="stat-delta" id="r-sessions-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Tiempo medio sesión</div><div class="stat-value sm" id="r-avg-session">—</div><div class="stat-delta" id="r-avg-session-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Sesiones/usuario/semana</div><div class="stat-value sm" id="r-sess-per-user">—</div></div>
+        <div class="stat-card"><div class="stat-label">Posts vistos/sesión</div><div class="stat-value sm" id="r-posts-per-sess">—</div></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Social -->
-  <section class="section" id="social">
-    <div class="section-title">Social</div>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Amistades totales</div><div class="stat-value" id="s-friends"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Media amigos/usuario</div><div class="stat-value sm" id="s-avg-friends"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">% con &lt;3 amigos</div><div class="stat-value" id="s-few-friends"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Reacciones totales</div><div class="stat-value" id="s-reactions"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Media reacciones/post</div><div class="stat-value sm" id="s-avg-reactions"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Comentarios totales</div><div class="stat-value" id="s-comments"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Media comentarios/post</div><div class="stat-value sm" id="s-avg-comments"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Posts guardados</div><div class="stat-value" id="s-saved"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-    </div>
-  </section>
+    <!-- ── Usuarios ───────────────────────────────────────── -->
+    <section class="section" id="usuarios">
+      <div class="section-title">Usuarios</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Total registrados</div><div class="stat-value" id="u-total">—</div><div class="stat-delta" id="u-total-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Nuevos (período)</div><div class="stat-value" id="u-new">—</div><div class="stat-delta" id="u-new-d"></div></div>
+        <div class="stat-card"><div class="stat-label">DAU (hoy)</div><div class="stat-value" id="u-dau">—</div><div class="stat-delta" id="u-dau-d"></div></div>
+        <div class="stat-card"><div class="stat-label">WAU (7 días)</div><div class="stat-value" id="u-wau">—</div><div class="stat-delta" id="u-wau-d"></div></div>
+        <div class="stat-card"><div class="stat-label">MAU (30 días)</div><div class="stat-value" id="u-mau">—</div><div class="stat-delta" id="u-mau-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Inactivos +30 días</div><div class="stat-value" id="u-inactive">—</div></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">DAU — usuarios activos por día en el período</div>
+        <canvas id="dau-chart" height="80"></canvas>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Sesiones por hora del día</div>
+        <canvas id="hours-chart" height="80"></canvas>
+      </div>
+      <div class="section-subtitle">Retención por cohorte (últimas 8 semanas)</div>
+      <div class="cohort-wrap">
+        <table class="data-table">
+          <thead><tr><th>Semana registro</th><th>Usuarios</th><th>Semana 1</th><th>Semana 2</th><th>Semana 3</th><th>Semana 4</th></tr></thead>
+          <tbody id="cohort-tbody"><tr><td colspan="6"><span class="skeleton" style="display:block;height:14px;width:80%;margin:12px"></span></td></tr></tbody>
+        </table>
+      </div>
+    </section>
 
-  <!-- B2B -->
-  <section class="section" id="b2b">
-    <div class="section-title">Negocios B2B</div>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Waitlist</div><div class="stat-value" id="b-waitlist"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Registrados</div><div class="stat-value" id="b-registered"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Verificados</div><div class="stat-value" id="b-verified"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">MRR estimado</div><div class="stat-value sm" id="b-mrr"><span class="skeleton" style="width:64px;height:28px"></span></div></div>
-    </div>
-    <div class="table-wrap" id="b-plans-wrap" style="margin-bottom:28px">
-      <div class="plan-row"><span class="skeleton" style="width:200px;height:16px"></span></div>
-    </div>
-    <div style="font-family:var(--serif);font-size:18px;font-weight:300;margin-bottom:12px;color:rgba(245,240,232,.7)">Restaurantes con 5+ menciones sin cuenta</div>
-    <div class="table-wrap"><table class="data-table" id="top-unregistered"><tbody><tr><td><span class="skeleton" style="width:100%;height:14px;display:block"></span></td></tr></tbody></table></div>
-  </section>
+    <!-- ── Comportamiento ─────────────────────────────────── -->
+    <section class="section" id="comportamiento">
+      <div class="section-title">Comportamiento</div>
+      <div class="two-col" style="margin-bottom:20px">
+        <div>
+          <div class="section-subtitle" style="margin-top:0">Pantallas más visitadas</div>
+          <div class="tbl-container" id="tbl-screens"></div>
+        </div>
+        <div>
+          <div class="section-subtitle" style="margin-top:0">Tiempo hasta primer post</div>
+          <div class="stat-card" style="margin-bottom:12px">
+            <div class="stat-label">Media horas registro→primer post</div>
+            <div class="stat-value sm" id="c-time-first-post">—</div>
+          </div>
+          <div class="section-subtitle">% posts vistos/sesión</div>
+          <div class="stat-card">
+            <div class="stat-label">post_viewed / session_open</div>
+            <div class="stat-value sm" id="c2-posts-per-sess">—</div>
+          </div>
+        </div>
+      </div>
 
-  <!-- Mapa -->
-  <section class="section" id="mapa">
-    <div class="section-title">Mapa de actividad</div>
-    <div id="map-container"></div>
-    <div style="margin-top:12px;font-size:12px;color:rgba(245,240,232,.4)">
-      <span style="color:#50d278">●</span> ≥7 posts &nbsp;
-      <span style="color:#F5C842">●</span> 5–6 posts &nbsp;
-      <span style="color:#E05050">●</span> &lt;5 posts &nbsp;
-      <span style="color:#C4622D">■</span> Negocio registrado
-    </div>
-  </section>
+      <div class="section-subtitle" style="margin-top:0">Embudo de onboarding</div>
+      <div class="funnel" id="funnel" style="margin-bottom:20px">
+        <div class="funnel-step">
+          <div class="funnel-meta"><span class="funnel-lbl">Abrieron la app (session_open)</span><span><span class="funnel-stat" id="fn-0">—</span><span class="funnel-pct-lbl" id="fn-pct-0">100%</span></span></div>
+          <div class="funnel-track"><div class="funnel-fill" id="fn-bar-0" style="width:100%;background:rgba(196,98,45,.7)"></div></div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-meta"><span class="funnel-lbl">Publicaron al menos 1 post</span><span><span class="funnel-stat" id="fn-1">—</span><span class="funnel-pct-lbl" id="fn-pct-1"></span></span></div>
+          <div class="funnel-track"><div class="funnel-fill" id="fn-bar-1" style="width:0;background:rgba(196,98,45,.55)"></div></div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-meta"><span class="funnel-lbl">Enviaron solicitud de amistad</span><span><span class="funnel-stat" id="fn-2">—</span><span class="funnel-pct-lbl" id="fn-pct-2"></span></span></div>
+          <div class="funnel-track"><div class="funnel-fill" id="fn-bar-2" style="width:0;background:rgba(196,98,45,.4)"></div></div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-meta"><span class="funnel-lbl">Guardaron un restaurante (quiero ir)</span><span><span class="funnel-stat" id="fn-3">—</span><span class="funnel-pct-lbl" id="fn-pct-3"></span></span></div>
+          <div class="funnel-track"><div class="funnel-fill" id="fn-bar-3" style="width:0;background:rgba(196,98,45,.25)"></div></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <div class="section-subtitle" style="margin-top:0">Modo feed (Amigos vs Ciudad)</div>
+          <div class="chart-wrap" style="margin-bottom:0">
+            <canvas id="feedmode-chart" height="120"></canvas>
+          </div>
+        </div>
+        <div>
+          <div class="section-subtitle" style="margin-top:0">Top búsquedas en Discover</div>
+          <div class="tbl-container" id="tbl-searches"></div>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Restaurantes más visitados (perfil)</div>
+      <div class="tbl-container" id="tbl-rvrestaurants"></div>
+    </section>
+
+    <!-- ── Contenido ──────────────────────────────────────── -->
+    <section class="section" id="contenido">
+      <div class="section-title">Contenido</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Posts en período</div><div class="stat-value" id="c-total">—</div><div class="stat-delta" id="c-total-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Media posts/usuario/sem</div><div class="stat-value sm" id="c-avg">—</div><div class="stat-delta" id="c-avg-d"></div></div>
+        <div class="stat-card"><div class="stat-label">% con selfie</div><div class="stat-value" id="c-selfie">—</div><div class="stat-delta" id="c-selfie-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Restaurantes únicos</div><div class="stat-value" id="c-rests">—</div><div class="stat-delta" id="c-rests-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Vista→guardado</div><div class="stat-value sm" id="c-conversion">—</div><div class="stat-delta" id="c-conversion-d"></div></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Posts publicados por día</div>
+        <canvas id="posts-chart" height="90"></canvas>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="section-subtitle" style="margin-top:0">Top 10 restaurantes</div>
+          <div class="tbl-container" id="tbl-top-rests"></div>
+        </div>
+        <div>
+          <div class="section-subtitle" style="margin-top:0">Top 10 platos</div>
+          <div class="tbl-container" id="tbl-top-dishes"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Social ─────────────────────────────────────────── -->
+    <section class="section" id="social">
+      <div class="section-title">Social</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Amistades totales</div><div class="stat-value" id="s-friends">—</div><div class="stat-delta" id="s-friends-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Media amigos/usuario</div><div class="stat-value sm" id="s-avg-friends">—</div></div>
+        <div class="stat-card"><div class="stat-label">% con &lt;3 amigos</div><div class="stat-value" id="s-few-friends">—</div></div>
+        <div class="stat-card"><div class="stat-label">Reacciones totales</div><div class="stat-value" id="s-reactions">—</div><div class="stat-delta" id="s-reactions-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Media reacciones/post</div><div class="stat-value sm" id="s-avg-reactions">—</div></div>
+        <div class="stat-card"><div class="stat-label">Comentarios totales</div><div class="stat-value" id="s-comments">—</div><div class="stat-delta" id="s-comments-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Posts guardados</div><div class="stat-value" id="s-saved">—</div><div class="stat-delta" id="s-saved-d"></div></div>
+      </div>
+      <div class="section-subtitle">Actividad de solicitudes de amistad</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Solicitudes enviadas</div><div class="stat-value" id="s-req-sent">—</div><div class="stat-delta" id="s-req-sent-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Solicitudes aceptadas</div><div class="stat-value" id="s-req-acc">—</div><div class="stat-delta" id="s-req-acc-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Solicitudes rechazadas</div><div class="stat-value" id="s-req-rej">—</div></div>
+        <div class="stat-card"><div class="stat-label">Tasa de aceptación</div><div class="stat-value sm" id="s-accept-rate">—</div></div>
+      </div>
+    </section>
+
+    <!-- ── B2B ────────────────────────────────────────────── -->
+    <section class="section" id="b2b">
+      <div class="section-title">Negocios B2B</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Waitlist</div><div class="stat-value" id="b-waitlist">—</div><div class="stat-delta" id="b-waitlist-d"></div></div>
+        <div class="stat-card"><div class="stat-label">Registrados</div><div class="stat-value" id="b-registered">—</div></div>
+        <div class="stat-card"><div class="stat-label">Verificados</div><div class="stat-value" id="b-verified">—</div></div>
+        <div class="stat-card"><div class="stat-label">MRR estimado</div><div class="stat-value sm" id="b-mrr">—</div></div>
+      </div>
+      <div class="table-wrap" id="b-plans-wrap" style="margin-bottom:24px">
+        <div class="plan-row"><span class="skeleton" style="width:200px;height:16px"></span></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Crecimiento waitlist por día</div>
+        <canvas id="waitlist-chart" height="80"></canvas>
+      </div>
+      <div class="section-subtitle">Restaurantes candidatos a contactar (≥5 menciones sin cuenta)</div>
+      <div class="tbl-container" id="tbl-candidates"></div>
+      <div id="contacted-section" style="display:none">
+        <div class="section-subtitle">Ya contactados</div>
+        <div class="tbl-container" id="tbl-contacted"></div>
+      </div>
+    </section>
+
+    <!-- ── Mapa ───────────────────────────────────────────── -->
+    <section class="section" id="mapa">
+      <div class="section-title">Mapa de actividad</div>
+      <div id="map-container"></div>
+      <div style="margin-top:12px;font-size:12px;color:rgba(245,240,232,.4);display:flex;gap:16px;flex-wrap:wrap">
+        <span><span style="color:#50d278">●</span> Posts ≥7</span>
+        <span><span style="color:#F5C842">●</span> Posts 5–6</span>
+        <span><span style="color:#E05050">●</span> Posts &lt;5</span>
+        <span><span style="color:#C4622D">■</span> Negocio registrado</span>
+        <span><span style="color:#4A90D9">●</span> Restaurante visitado</span>
+      </div>
+    </section>
+  </div><!-- .main-inner -->
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -256,420 +383,869 @@ const ADMIN_EMAIL  = 'admin@yumlist.app';
 const PLAN_PRICES  = { free: 0, starter: 29, premium: 79 };
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let postsChart = null;
+
+// ── Global state ──────────────────────────────────────────────────────────────
+let F = { from: null, to: null, prevFrom: null, prevTo: null, city: null, userIds: null };
 let leafletMap = null;
+const charts = {};
+const tables = {};
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Basic helpers ─────────────────────────────────────────────────────────────
+function fmt(n) { if (n === null || n === undefined) return '—'; return Number(n).toLocaleString('es-ES'); }
+function fmtDec(n, d = 1) { if (n === null || n === undefined || isNaN(n)) return '—'; return Number(n).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function fmtPct(n) { if (n === null || n === undefined || isNaN(n)) return '—'; return fmtDec(n, 1) + '%'; }
+function set(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function fmt(n) {
-  if (n === null || n === undefined) return '—';
-  return Number(n).toLocaleString('es-ES');
+function delta(curr, prev, suffix = '') {
+  if (curr === null || prev === null || prev === 0 || isNaN(curr) || isNaN(prev)) return '';
+  const pct = ((curr - prev) / Math.abs(prev)) * 100;
+  const cls = pct >= 0 ? 'delta-up' : 'delta-dn';
+  const arrow = pct >= 0 ? '↑' : '↓';
+  const prevFmt = suffix ? fmtDec(prev, 1) + suffix : fmt(prev);
+  return `<span class="${cls}">${arrow} ${fmtDec(Math.abs(pct), 1)}%</span> <span style="color:rgba(245,240,232,.3);font-size:11px">vs ${prevFmt}</span>`;
 }
 
-function fmtDec(n, d = 1) {
-  if (n === null || n === undefined || isNaN(n)) return '—';
-  return Number(n).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
-}
+function skeletonStat() { return '<span class="skeleton" style="display:inline-block;width:56px;height:26px"></span>'; }
+function skeletonTableHtml() { return '<div class="table-wrap"><table class="data-table"><tbody><tr><td><span class="skeleton" style="display:block;width:80%;height:13px;margin:4px 0"></span></td></tr></tbody></table></div>'; }
+function cityHasNoUsers() { return F.userIds !== null && F.userIds.length === 0; }
 
-function fmtPct(n) {
-  if (n === null || n === undefined || isNaN(n)) return '—';
-  return fmtDec(n, 1) + '%';
-}
+function isoDate(d) { return d instanceof Date ? d.toISOString() : d; }
 
-function set(id, html) {
-  const el = document.getElementById(id);
-  if (el) el.innerHTML = html;
-}
+// ── Filter management ─────────────────────────────────────────────────────────
+function computeRange() {
+  const preset = document.getElementById('filter-preset').value;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const DAY = 86400000;
 
-function esc(s) {
-  if (!s) return '';
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function daysAgo(n) {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - n);
-  return d.toISOString();
-}
-
-function haversineM(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-// ── Auth ──────────────────────────────────────────────────────────────────────
-
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session || session.user.email !== ADMIN_EMAIL) {
-    window.location.replace('/business/login');
-    return;
+  let from, to, prevFrom, prevTo;
+  if (preset === 'today') {
+    from = new Date(today); to = new Date(today.getTime() + DAY - 1);
+    prevFrom = new Date(today.getTime() - DAY); prevTo = new Date(today.getTime() - 1);
+  } else if (preset === '7d') {
+    from = new Date(today.getTime() - 6 * DAY); to = new Date(today.getTime() + DAY - 1);
+    prevFrom = new Date(today.getTime() - 13 * DAY); prevTo = new Date(today.getTime() - 7 * DAY - 1);
+  } else if (preset === '30d') {
+    from = new Date(today.getTime() - 29 * DAY); to = new Date(today.getTime() + DAY - 1);
+    prevFrom = new Date(today.getTime() - 59 * DAY); prevTo = new Date(today.getTime() - 30 * DAY - 1);
+  } else if (preset === '90d') {
+    from = new Date(today.getTime() - 89 * DAY); to = new Date(today.getTime() + DAY - 1);
+    prevFrom = new Date(today.getTime() - 179 * DAY); prevTo = new Date(today.getTime() - 90 * DAY - 1);
+  } else {
+    const fv = document.getElementById('filter-from').value;
+    const tv = document.getElementById('filter-to').value;
+    if (!fv || !tv) return;
+    from = new Date(fv); to = new Date(tv); to.setHours(23, 59, 59, 999);
+    const diff = to - from;
+    prevTo = new Date(from.getTime() - 1); prevFrom = new Date(prevTo.getTime() - diff);
   }
-  set('sidebar-email', esc(session.user.email));
-  await loadAll();
-  setupScrollSpy();
+  F.from = from.toISOString(); F.to = to.toISOString();
+  F.prevFrom = prevFrom.toISOString(); F.prevTo = prevTo.toISOString();
 }
 
-// ── Load all ──────────────────────────────────────────────────────────────────
+function onPresetChange() {
+  const v = document.getElementById('filter-preset').value;
+  document.getElementById('filter-custom').classList.toggle('visible', v === 'custom');
+}
 
-async function loadAll() {
+function updatePeriodIndicator() {
+  const from = new Date(F.from).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  const to = new Date(F.to).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  const pFrom = new Date(F.prevFrom).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  const pTo = new Date(F.prevTo).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  set('filter-period', `${from} – ${to} &nbsp;|&nbsp; período ant: ${pFrom} – ${pTo}`);
+}
+
+async function loadCities() {
+  const { data } = await sb.from('profiles').select('city').not('city', 'is', null).limit(5000);
+  if (!data) return;
+  const cities = [...new Set(data.map(p => p.city).filter(Boolean))].sort();
+  const sel = document.getElementById('filter-city');
+  cities.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+}
+
+function showAllSkeletons() {
+  document.querySelectorAll('.stat-value').forEach(el => { el.innerHTML = skeletonStat(); });
+  document.querySelectorAll('.stat-delta').forEach(el => { el.innerHTML = ''; });
+  ['tbl-screens','tbl-searches','tbl-rvrestaurants','tbl-top-rests','tbl-top-dishes','tbl-candidates','tbl-contacted'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML = skeletonTableHtml();
+  });
+  set('cohort-tbody', '<tr><td colspan="6"><span class="skeleton" style="display:block;height:13px;width:80%;margin:12px"></span></td></tr>');
+}
+
+async function applyFilters() {
+  computeRange();
+  const city = document.getElementById('filter-city').value;
+  F.city = city || null;
+
+  if (F.city) {
+    const { data } = await sb.from('profiles').select('id').eq('city', F.city).limit(200);
+    F.userIds = data ? data.map(p => p.id) : [];
+  } else {
+    F.userIds = null;
+  }
+
+  updatePeriodIndicator();
+  showAllSkeletons();
+  destroyCharts();
+
   set('last-updated', 'Cargando…');
+
   await Promise.allSettled([
-    loadResumen(),
-    loadUsuarios(),
-    loadContenido(),
-    loadSocial(),
-    loadB2B(),
+    loadResumen(), loadUsuarios(), loadComportamiento(),
+    loadContenido(), loadSocial(), loadB2B(),
   ]);
   loadMapa();
   set('last-updated', 'Actualizado: ' + new Date().toLocaleString('es-ES'));
 }
 
-function skeletonStat() {
-  return '<span class="skeleton" style="width:64px;height:28px;display:inline-block"></span>';
+// ── Chart helpers ─────────────────────────────────────────────────────────────
+function destroyCharts() {
+  Object.keys(charts).forEach(k => { if (charts[k]) { charts[k].destroy(); delete charts[k]; } });
 }
 
-async function refreshAll() {
-  document.querySelectorAll('.stat-value').forEach(el => { el.innerHTML = skeletonStat(); });
-  set('top-rests',  '<tbody><tr><td><span class="skeleton" style="width:100%;height:14px;display:block"></span></td></tr></tbody>');
-  set('top-dishes', '<tbody><tr><td><span class="skeleton" style="width:100%;height:14px;display:block"></span></td></tr></tbody>');
-  set('top-unregistered', '<tbody><tr><td><span class="skeleton" style="width:100%;height:14px;display:block"></span></td></tr></tbody>');
-  set('b-plans-wrap', '<div class="plan-row"><span class="skeleton" style="width:200px;height:16px"></span></div>');
-  if (postsChart) { postsChart.destroy(); postsChart = null; }
-  if (leafletMap) { leafletMap.remove(); leafletMap = null; }
-  await loadAll();
-}
+const CHART_DEFAULTS = {
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { color: 'rgba(245,240,232,.4)', font: { size: 10 } }, grid: { color: 'rgba(245,240,232,.05)' } },
+    y: { ticks: { color: 'rgba(245,240,232,.4)', font: { size: 10 } }, grid: { color: 'rgba(245,240,232,.05)' }, beginAtZero: true },
+  },
+};
 
-// ── Resumen ───────────────────────────────────────────────────────────────────
-
-async function loadResumen() {
-  const today = daysAgo(0);
-
-  const [uRes, pRes, pNamesRes, bRes, dauRes, ptRes] = await Promise.allSettled([
-    sb.from('profiles').select('*', { count: 'exact', head: true }),
-    sb.from('posts').select('*', { count: 'exact', head: true }),
-    sb.from('posts').select('restaurant_name'),
-    sb.from('business_accounts').select('*', { count: 'exact', head: true }),
-    sb.from('user_events').select('user_id').eq('event_type', 'session_open').gte('created_at', today),
-    sb.from('posts').select('*', { count: 'exact', head: true }).gte('created_at', today),
-  ]);
-
-  const totalUsers = uRes.status === 'fulfilled' ? uRes.value.count : null;
-  const totalPosts = pRes.status === 'fulfilled' ? pRes.value.count : null;
-  const uniqueRests = (pNamesRes.status === 'fulfilled' && pNamesRes.value.data)
-    ? new Set(pNamesRes.value.data.map(p => p.restaurant_name).filter(Boolean)).size : null;
-  const totalBiz = bRes.status === 'fulfilled' ? bRes.value.count : null;
-  const dau = (dauRes.status === 'fulfilled' && dauRes.value.data)
-    ? new Set(dauRes.value.data.map(e => e.user_id)).size : null;
-  const postsToday = ptRes.status === 'fulfilled' ? ptRes.value.count : null;
-
-  set('r-users', fmt(totalUsers));
-  set('r-posts', fmt(totalPosts));
-  set('r-rests', fmt(uniqueRests));
-  set('r-biz', fmt(totalBiz));
-  set('r-dau', fmt(dau));
-  set('r-posts-today', fmt(postsToday));
-}
-
-// ── Usuarios ──────────────────────────────────────────────────────────────────
-
-async function loadUsuarios() {
-  const today = daysAgo(0);
-  const w7    = daysAgo(6);
-  const m30   = daysAgo(29);
-
-  const [totalRes, nwRes, nmRes, dauRes, wauRes, mauRes, totalEvRes] = await Promise.allSettled([
-    sb.from('profiles').select('*', { count: 'exact', head: true }),
-    sb.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', w7),
-    sb.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', m30),
-    sb.from('user_events').select('user_id').eq('event_type', 'session_open').gte('created_at', today),
-    sb.from('user_events').select('user_id').eq('event_type', 'session_open').gte('created_at', w7),
-    sb.from('user_events').select('user_id').eq('event_type', 'session_open').gte('created_at', m30),
-    sb.from('profiles').select('*', { count: 'exact', head: true }),
-  ]);
-
-  const total    = totalRes.status === 'fulfilled' ? totalRes.value.count : null;
-  const newWeek  = nwRes.status === 'fulfilled' ? nwRes.value.count : null;
-  const newMonth = nmRes.status === 'fulfilled' ? nmRes.value.count : null;
-
-  const dau = (dauRes.status === 'fulfilled' && dauRes.value.data)
-    ? new Set(dauRes.value.data.map(e => e.user_id)).size : null;
-  const wau = (wauRes.status === 'fulfilled' && wauRes.value.data)
-    ? new Set(wauRes.value.data.map(e => e.user_id)).size : null;
-  const mau = (mauRes.status === 'fulfilled' && mauRes.value.data)
-    ? new Set(mauRes.value.data.map(e => e.user_id)).size : null;
-
-  const inactive = (total !== null && mau !== null) ? total - mau : null;
-
-  set('u-total', fmt(total));
-  set('u-new-week', fmt(newWeek));
-  set('u-new-month', fmt(newMonth));
-  set('u-dau', fmt(dau));
-  set('u-wau', fmt(wau));
-  set('u-mau', fmt(mau));
-  set('u-inactive', fmt(inactive));
-}
-
-// ── Contenido ─────────────────────────────────────────────────────────────────
-
-async function loadContenido() {
-  const w7  = daysAgo(6);
-  const m30 = daysAgo(29);
-
-  const [totalRes, w7Res, m30Res, allRes, usersRes] = await Promise.allSettled([
-    sb.from('posts').select('*', { count: 'exact', head: true }),
-    sb.from('posts').select('*', { count: 'exact', head: true }).gte('created_at', w7),
-    sb.from('posts').select('created_at').gte('created_at', m30),
-    sb.from('posts').select('restaurant_name, dish_names, selfie_url'),
-    sb.from('profiles').select('*', { count: 'exact', head: true }),
-  ]);
-
-  const total      = totalRes.status === 'fulfilled' ? totalRes.value.count : null;
-  const w7Count    = w7Res.status === 'fulfilled' ? w7Res.value.count : null;
-  const totalUsers = usersRes.status === 'fulfilled' ? usersRes.value.count : null;
-  const allPosts   = (allRes.status === 'fulfilled' && allRes.value.data) ? allRes.value.data : null;
-
-  const avgPerUserWeek = (w7Count !== null && totalUsers && totalUsers > 0) ? w7Count / totalUsers : null;
-
-  let selfPct = null;
-  let uniqueRests = null;
-  if (allPosts) {
-    const withSelfie = allPosts.filter(p => p.selfie_url).length;
-    if (allPosts.length > 0) selfPct = (withSelfie / allPosts.length) * 100;
-    uniqueRests = new Set(allPosts.map(p => p.restaurant_name).filter(Boolean)).size;
-  }
-
-  set('c-total', fmt(total));
-  set('c-7d', fmt(w7Count));
-  set('c-avg', fmtDec(avgPerUserWeek, 2));
-  set('c-selfie', fmtPct(selfPct));
-  set('c-rests', fmt(uniqueRests));
-
-  if (m30Res.status === 'fulfilled' && m30Res.value.data) {
-    renderPostsChart(m30Res.value.data);
-  }
-
-  // Full post list for top tables (PostgREST default limit 1000; fetch all for rankings)
-  const fullRes = await sb.from('posts').select('restaurant_name, dish_names');
-  const posts = (fullRes.data) ? fullRes.data : (allPosts || []);
-  renderTopTable('top-rests', 'Restaurante', 'Posts', buildRestCounts(posts));
-  renderTopTable('top-dishes', 'Plato', 'Menciones', buildDishCounts(posts));
-}
-
-function buildRestCounts(posts) {
-  const c = {};
-  posts.forEach(p => { if (p.restaurant_name) c[p.restaurant_name] = (c[p.restaurant_name] || 0) + 1; });
-  return c;
-}
-
-function buildDishCounts(posts) {
-  const c = {};
-  posts.forEach(p => (p.dish_names || []).forEach(d => { if (d) c[d] = (c[d] || 0) + 1; }));
-  return c;
-}
-
-function renderTopTable(id, col1, col2, counts) {
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-  const tbody = sorted.length
-    ? sorted.map(([name, n], i) => `<tr><td class="rank">${i+1}</td><td>${esc(name)}</td><td class="num">${fmt(n)}</td></tr>`).join('')
-    : `<tr><td colspan="3" style="color:rgba(245,240,232,.35);padding:12px">Sin datos</td></tr>`;
-  set(id, `<thead><tr><th>#</th><th>${col1}</th><th style="text-align:right">${col2}</th></tr></thead><tbody>${tbody}</tbody>`);
-}
-
-function renderPostsChart(data) {
-  const counts = {};
-  const today = new Date();
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    counts[d.toISOString().slice(0, 10)] = 0;
-  }
-  data.forEach(p => { const k = p.created_at?.slice(0, 10); if (k && k in counts) counts[k]++; });
-  const labels = Object.keys(counts).map(k => k.slice(5));
-  const values = Object.values(counts);
-
-  const canvas = document.getElementById('posts-chart');
-  if (!canvas) return;
-  if (postsChart) postsChart.destroy();
-  postsChart = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{ data: values, backgroundColor: 'rgba(196,98,45,.5)', borderColor: 'rgba(196,98,45,.85)', borderWidth: 1, borderRadius: 3 }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: 'rgba(245,240,232,.4)', font: { size: 10 } }, grid: { color: 'rgba(245,240,232,.05)' } },
-        y: { ticks: { color: 'rgba(245,240,232,.4)', font: { size: 10 } }, grid: { color: 'rgba(245,240,232,.05)' }, beginAtZero: true },
-      },
-    },
+function makeLineChart(id, labels, datasets) {
+  const canvas = document.getElementById(id); if (!canvas) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: { ...CHART_DEFAULTS, plugins: { legend: { display: datasets.length > 1, labels: { color: 'rgba(245,240,232,.6)', font: { size: 11 } } } } },
   });
 }
 
-// ── Social ────────────────────────────────────────────────────────────────────
+function makeBarChart(id, labels, data, color = 'rgba(196,98,45,.5)') {
+  const canvas = document.getElementById(id); if (!canvas) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: color, borderColor: color.replace('.5)', '.85)').replace('.4)', '.7)'), borderWidth: 1, borderRadius: 3 }] },
+    options: CHART_DEFAULTS,
+  });
+}
 
-async function loadSocial() {
-  const [frRes, reRes, coRes, svRes, tpRes, tuRes, frByUserRes] = await Promise.allSettled([
-    sb.from('friends').select('*', { count: 'exact', head: true }).eq('status', 'accepted'),
-    sb.from('reactions').select('*', { count: 'exact', head: true }),
-    sb.from('comments').select('*', { count: 'exact', head: true }),
-    sb.from('saved_posts').select('*', { count: 'exact', head: true }),
-    sb.from('posts').select('*', { count: 'exact', head: true }),
-    sb.from('profiles').select('*', { count: 'exact', head: true }),
-    sb.from('friends').select('user_id').eq('status', 'accepted'),
-  ]);
+// ── Table system ──────────────────────────────────────────────────────────────
+function renderTable(id, cols, data) {
+  tables[id] = { cols, data, page: 0 };
+  _renderPage(id);
+}
 
-  const friends    = frRes.status === 'fulfilled' ? frRes.value.count : null;
-  const reactions  = reRes.status === 'fulfilled' ? reRes.value.count : null;
-  const comments   = coRes.status === 'fulfilled' ? coRes.value.count : null;
-  const saved      = svRes.status === 'fulfilled' ? svRes.value.count : null;
-  const totalPosts = tpRes.status === 'fulfilled' ? tpRes.value.count : null;
-  const totalUsers = tuRes.status === 'fulfilled' ? tuRes.value.count : null;
+function _renderPage(id) {
+  const t = tables[id]; if (!t) return;
+  const { cols, data, page } = t;
+  const PAGE = 10, start = page * PAGE, slice = data.slice(start, start + PAGE);
 
-  const avgFriends   = (friends !== null && totalUsers && totalUsers > 0) ? (friends * 2) / totalUsers : null;
-  const avgReactions = (reactions !== null && totalPosts && totalPosts > 0) ? reactions / totalPosts : null;
-  const avgComments  = (comments !== null && totalPosts && totalPosts > 0) ? comments / totalPosts : null;
+  const ths = cols.map(c => `<th${c.right ? ' style="text-align:right"' : ''}>${esc(c.label)}</th>`).join('');
+  const trs = slice.length
+    ? slice.map((row, i) => `<tr>${cols.map(c => {
+        const val = c.render ? c.render(row, start + i) : esc(String(row[c.key] ?? ''));
+        return `<td${c.right ? ' class="num"' : ''}${c.rank ? ' class="rank"' : ''}>${val}</td>`;
+      }).join('')}</tr>`).join('')
+    : `<tr><td colspan="${cols.length}" style="color:rgba(245,240,232,.35);padding:12px;text-align:center">Sin datos</td></tr>`;
 
-  let fewFriendsPct = null;
-  if (frByUserRes.status === 'fulfilled' && frByUserRes.value.data && totalUsers) {
-    const perUser = {};
-    frByUserRes.value.data.forEach(r => { perUser[r.user_id] = (perUser[r.user_id] || 0) + 1; });
-    const usersWithFew = Object.values(perUser).filter(c => c < 3).length;
-    const usersWithZero = totalUsers - Object.keys(perUser).length;
-    fewFriendsPct = ((usersWithFew + Math.max(0, usersWithZero)) / totalUsers) * 100;
+  const total = data.length, hasPag = total > PAGE;
+  const pag = `<div class="tbl-pagination">
+    <span style="font-size:12px;color:rgba(245,240,232,.4)">${total > 0 ? `${start + 1}–${Math.min(start + PAGE, total)} de ${total}` : '0 resultados'}</span>
+    <div class="tbl-actions">
+      ${hasPag ? `<button class="tbl-btn" onclick="tablePrev('${id}')" ${page === 0 ? 'disabled' : ''}>← Ant</button>
+      <button class="tbl-btn" onclick="tableNext('${id}')" ${start + PAGE >= total ? 'disabled' : ''}>Sig →</button>` : ''}
+      <button class="tbl-btn" onclick="exportCSV('${id}')">↓ CSV</button>
+    </div>
+  </div>`;
+
+  const el = document.getElementById('tbl-' + id);
+  if (el) el.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table></div>${pag}`;
+}
+
+function tablePrev(id) { if (tables[id] && tables[id].page > 0) { tables[id].page--; _renderPage(id); } }
+function tableNext(id) { if (tables[id] && (tables[id].page + 1) * 10 < tables[id].data.length) { tables[id].page++; _renderPage(id); } }
+
+function exportCSV(id) {
+  const t = tables[id]; if (!t) return;
+  const header = t.cols.filter(c => c.key).map(c => c.label).join(',');
+  const rows = t.data.map(row => t.cols.filter(c => c.key).map(c => `"${String(row[c.key] ?? '').replace(/"/g,'""')}"`).join(','));
+  const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv' });
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${id}_${new Date().toISOString().slice(0,10)}.csv` });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+// ── Computation helpers ───────────────────────────────────────────────────────
+function avgDau(events, from, to) {
+  if (!events || !events.length) return 0;
+  const days = Math.max(1, Math.ceil((new Date(to) - new Date(from)) / 86400000));
+  const byDay = {};
+  events.forEach(e => {
+    const d = e.created_at.slice(0, 10);
+    if (!byDay[d]) byDay[d] = new Set();
+    byDay[d].add(e.user_id);
+  });
+  return Object.values(byDay).reduce((s, set) => s + set.size, 0) / days;
+}
+
+function avgSessionMinutes(events) {
+  const durations = (events || []).map(e => {
+    const d = e.metadata && (typeof e.metadata === 'object' ? e.metadata.duration_seconds : null);
+    return d ? Number(d) : null;
+  }).filter(d => d !== null && d > 0 && !isNaN(d));
+  if (!durations.length) return null;
+  return durations.reduce((s, d) => s + d, 0) / durations.length / 60;
+}
+
+function sessionsPerUserWeek(events) {
+  if (!events || !events.length) return null;
+  const map = {};
+  events.forEach(e => {
+    const w = Math.floor(new Date(e.created_at).getTime() / (7 * 86400000));
+    const k = `${e.user_id}_${w}`;
+    map[k] = (map[k] || 0) + 1;
+  });
+  const vals = Object.values(map);
+  return vals.reduce((s, v) => s + v, 0) / vals.length;
+}
+
+function buildDayMap(from, to) {
+  const map = {}, cur = new Date(from); cur.setHours(0,0,0,0);
+  const end = new Date(to);
+  while (cur <= end) { map[cur.toISOString().slice(0,10)] = 0; cur.setDate(cur.getDate() + 1); }
+  return map;
+}
+
+// helpers to build filtered queries
+function pq(table, extraEq, useCity) {
+  let q = sb.from(table).gte('created_at', F.from).lte('created_at', F.to);
+  if (extraEq) Object.entries(extraEq).forEach(([k,v]) => { q = q.eq(k, v); });
+  if (useCity === 'user' && F.userIds) q = q.in('user_id', F.userIds);
+  if (useCity === 'post' && F.city) q = q.ilike('address', `%${F.city}%`);
+  return q;
+}
+function pqPrev(table, extraEq, useCity) {
+  let q = sb.from(table).gte('created_at', F.prevFrom).lte('created_at', F.prevTo);
+  if (extraEq) Object.entries(extraEq).forEach(([k,v]) => { q = q.eq(k, v); });
+  if (useCity === 'user' && F.userIds) q = q.in('user_id', F.userIds);
+  if (useCity === 'post' && F.city) q = q.ilike('address', `%${F.city}%`);
+  return q;
+}
+
+// ── Resumen ───────────────────────────────────────────────────────────────────
+async function loadResumen() {
+  if (cityHasNoUsers()) {
+    ['r-users','r-posts','r-rests','r-dau','r-sessions','r-avg-session','r-sess-per-user','r-posts-per-sess'].forEach(id => set(id, '0'));
+    return;
   }
 
-  set('s-friends', fmt(friends));
-  set('s-avg-friends', fmtDec(avgFriends, 1));
-  set('s-few-friends', fmtPct(fewFriendsPct));
-  set('s-reactions', fmt(reactions));
-  set('s-avg-reactions', fmtDec(avgReactions, 2));
-  set('s-comments', fmt(comments));
-  set('s-avg-comments', fmtDec(avgComments, 2));
-  set('s-saved', fmt(saved));
+  const [
+    nwRes, pnwRes,
+    postsRes, pPostsRes,
+    restRes, pRestRes,
+    bizRes,
+    sessOpenRes, pSessOpenRes,
+    sessCloseRes, pSessCloseRes,
+    postViewRes,
+  ] = await Promise.allSettled([
+    (() => { let q = sb.from('profiles').select('*',{count:'exact',head:true}).gte('created_at',F.from).lte('created_at',F.to); if(F.city) q=q.eq('city',F.city); return q; })(),
+    (() => { let q = sb.from('profiles').select('*',{count:'exact',head:true}).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.city) q=q.eq('city',F.city); return q; })(),
+    (() => { let q = sb.from('posts').select('*',{count:'exact',head:true}).gte('created_at',F.from).lte('created_at',F.to); if(F.city) q=q.ilike('address',`%${F.city}%`); return q; })(),
+    (() => { let q = sb.from('posts').select('*',{count:'exact',head:true}).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.city) q=q.ilike('address',`%${F.city}%`); return q; })(),
+    (() => { let q = sb.from('posts').select('restaurant').gte('created_at',F.from).lte('created_at',F.to).limit(5000); if(F.city) q=q.ilike('address',`%${F.city}%`); return q; })(),
+    (() => { let q = sb.from('posts').select('restaurant').gte('created_at',F.prevFrom).lte('created_at',F.prevTo).limit(5000); if(F.city) q=q.ilike('address',`%${F.city}%`); return q; })(),
+    sb.from('business_accounts').select('*',{count:'exact',head:true}),
+    pq('user_events',{event_type:'session_open'},'user').select('user_id, created_at'),
+    pqPrev('user_events',{event_type:'session_open'},'user').select('user_id, created_at'),
+    pq('user_events',{event_type:'session_close'},'user').select('metadata').not('metadata','is',null),
+    pqPrev('user_events',{event_type:'session_close'},'user').select('metadata').not('metadata','is',null),
+    pq('user_events',{event_type:'post_viewed'},'user').select('user_id'),
+  ]);
+
+  const newUsers = nwRes.status==='fulfilled' ? nwRes.value.count : null;
+  const pNewUsers = pnwRes.status==='fulfilled' ? pnwRes.value.count : null;
+  const posts = postsRes.status==='fulfilled' ? postsRes.value.count : null;
+  const pPosts = pPostsRes.status==='fulfilled' ? pPostsRes.value.count : null;
+
+  const rests = restRes.status==='fulfilled' && restRes.value.data
+    ? new Set(restRes.value.data.map(p=>p.restaurant).filter(Boolean)).size : null;
+  const pRests = pRestRes.status==='fulfilled' && pRestRes.value.data
+    ? new Set(pRestRes.value.data.map(p=>p.restaurant).filter(Boolean)).size : null;
+
+  const biz = bizRes.status==='fulfilled' ? bizRes.value.count : null;
+
+  const sessOpen = sessOpenRes.status==='fulfilled' ? sessOpenRes.value.data || [] : [];
+  const pSessOpen = pSessOpenRes.status==='fulfilled' ? pSessOpenRes.value.data || [] : [];
+  const sessClose = sessCloseRes.status==='fulfilled' ? sessCloseRes.value.data || [] : [];
+  const pSessClose = pSessCloseRes.status==='fulfilled' ? pSessCloseRes.value.data || [] : [];
+  const postViewed = postViewRes.status==='fulfilled' ? (postViewRes.value.data||[]).length : 0;
+
+  const dau = avgDau(sessOpen, F.from, F.to);
+  const pDau = avgDau(pSessOpen, F.prevFrom, F.prevTo);
+  const sessions = sessOpen.length;
+  const pSessions = pSessOpen.length;
+  const avgSess = avgSessionMinutes(sessClose);
+  const pAvgSess = avgSessionMinutes(pSessClose);
+  const spuw = sessionsPerUserWeek(sessOpen);
+  const postsPerSess = sessions > 0 ? postViewed / sessions : null;
+
+  set('r-users', fmt(newUsers));       set('r-users-d', delta(newUsers, pNewUsers));
+  set('r-posts', fmt(posts));          set('r-posts-d', delta(posts, pPosts));
+  set('r-rests', fmt(rests));          set('r-rests-d', delta(rests, pRests));
+  set('r-biz', fmt(biz));
+  set('r-dau', fmtDec(dau, 0));        set('r-dau-d', delta(dau, pDau));
+  set('r-sessions', fmt(sessions));    set('r-sessions-d', delta(sessions, pSessions));
+  set('r-avg-session', avgSess !== null ? fmtDec(avgSess, 1) + ' min' : '—');
+  set('r-avg-session-d', delta(avgSess, pAvgSess, ' min'));
+  set('r-sess-per-user', fmtDec(spuw, 1));
+  set('r-posts-per-sess', fmtDec(postsPerSess, 1));
+}
+
+// ── Usuarios ──────────────────────────────────────────────────────────────────
+async function loadUsuarios() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const DAY = 86400000;
+  const d7  = new Date(today.getTime() - 6*DAY).toISOString();
+  const d30 = new Date(today.getTime() - 29*DAY).toISOString();
+  const d7p = new Date(today.getTime() - 13*DAY).toISOString();
+  const d30p= new Date(today.getTime() - 59*DAY).toISOString();
+  const todayISO = today.toISOString();
+
+  const uFilter = q => F.city ? q.eq('city', F.city) : q;
+  const evFilter = (q, from) => {
+    let r = q.gte('created_at', from).eq('event_type','session_open');
+    if (F.userIds) r = r.in('user_id', F.userIds);
+    return r;
+  };
+
+  const [totRes, ptotRes, newRes, pnewRes, dauRes, pdauRes, wauRes, pwauRes, mauRes, pmauRes, hoursRes, dauChartRes] = await Promise.allSettled([
+    uFilter(sb.from('profiles').select('*',{count:'exact',head:true})),
+    uFilter(sb.from('profiles').select('*',{count:'exact',head:true}).lte('created_at', F.prevTo)),
+    uFilter(sb.from('profiles').select('*',{count:'exact',head:true}).gte('created_at', F.from).lte('created_at', F.to)),
+    uFilter(sb.from('profiles').select('*',{count:'exact',head:true}).gte('created_at', F.prevFrom).lte('created_at', F.prevTo)),
+    evFilter(sb.from('user_events').select('user_id'), todayISO),
+    evFilter(sb.from('user_events').select('user_id'), new Date(today.getTime()-DAY).toISOString()).lte('created_at', todayISO),
+    evFilter(sb.from('user_events').select('user_id'), d7),
+    evFilter(sb.from('user_events').select('user_id'), d7p).lte('created_at', d7),
+    evFilter(sb.from('user_events').select('user_id'), d30),
+    evFilter(sb.from('user_events').select('user_id'), d30p).lte('created_at', d30),
+    (() => { let q = sb.from('user_events').select('created_at').eq('event_type','session_open').gte('created_at',F.from).lte('created_at',F.to); if(F.userIds) q=q.in('user_id',F.userIds); return q; })(),
+    (() => { let q = sb.from('user_events').select('user_id, created_at').eq('event_type','session_open').gte('created_at',F.from).lte('created_at',F.to); if(F.userIds) q=q.in('user_id',F.userIds); return q; })(),
+  ]);
+
+  const total  = totRes.status==='fulfilled' ? totRes.value.count : null;
+  const pTotal = ptotRes.status==='fulfilled' ? ptotRes.value.count : null;
+  const newU   = newRes.status==='fulfilled' ? newRes.value.count : null;
+  const pNewU  = pnewRes.status==='fulfilled' ? pnewRes.value.count : null;
+
+  const uset = r => r.status==='fulfilled' && r.value.data ? new Set(r.value.data.map(e=>e.user_id)).size : null;
+  const dau=uset(dauRes), pdau=uset(pdauRes), wau=uset(wauRes), pwau=uset(pwauRes), mau=uset(mauRes), pmau=uset(pmauRes);
+  const inactive = (total!==null&&mau!==null) ? total-mau : null;
+
+  set('u-total', fmt(total));    set('u-total-d', delta(total, pTotal));
+  set('u-new', fmt(newU));       set('u-new-d', delta(newU, pNewU));
+  set('u-dau', fmt(dau));        set('u-dau-d', delta(dau, pdau));
+  set('u-wau', fmt(wau));        set('u-wau-d', delta(wau, pwau));
+  set('u-mau', fmt(mau));        set('u-mau-d', delta(mau, pmau));
+  set('u-inactive', fmt(inactive));
+
+  // DAU line chart
+  if (dauChartRes.status==='fulfilled' && dauChartRes.value.data) {
+    const dayMap = buildDayMap(F.from, F.to);
+    const byDay = {};
+    dauChartRes.value.data.forEach(e => {
+      const d = e.created_at.slice(0,10);
+      if (!byDay[d]) byDay[d] = new Set();
+      byDay[d].add(e.user_id);
+    });
+    Object.keys(dayMap).forEach(d => { dayMap[d] = byDay[d] ? byDay[d].size : 0; });
+    makeLineChart('dau-chart', Object.keys(dayMap).map(d=>d.slice(5)), [{
+      data: Object.values(dayMap), borderColor: 'rgba(196,98,45,.8)',
+      backgroundColor: 'rgba(196,98,45,.1)', tension: 0.3, fill: true, pointRadius: 2,
+    }]);
+  }
+
+  // Sessions by hour
+  if (hoursRes.status==='fulfilled' && hoursRes.value.data) {
+    const hours = new Array(24).fill(0);
+    hoursRes.value.data.forEach(e => { hours[new Date(e.created_at).getHours()]++; });
+    makeBarChart('hours-chart', Array.from({length:24},(_,i)=>`${i}h`), hours, 'rgba(80,140,255,.5)');
+  }
+
+  // Cohort retention
+  loadCohortRetention();
+}
+
+async function loadCohortRetention() {
+  const eightWeeksAgo = new Date(Date.now() - 56*86400000).toISOString();
+  const { data: profiles } = await sb.from('profiles').select('id, created_at').gte('created_at', eightWeeksAgo).limit(500);
+  if (!profiles || !profiles.length) { set('cohort-tbody','<tr><td colspan="6" style="color:rgba(245,240,232,.35);padding:12px;text-align:center">Sin datos</td></tr>'); return; }
+
+  const ids = profiles.map(p=>p.id).slice(0,100);
+  const { data: events } = await sb.from('user_events').select('user_id, created_at').eq('event_type','session_open').in('user_id', ids);
+  const userSess = {};
+  (events||[]).forEach(e => { if(!userSess[e.user_id]) userSess[e.user_id]=[]; userSess[e.user_id].push(new Date(e.created_at).getTime()); });
+
+  const WEEK = 7*86400000;
+  const cohorts = {};
+  profiles.forEach(p => {
+    const t = new Date(p.created_at).getTime();
+    const w = Math.floor(t/WEEK);
+    if (!cohorts[w]) cohorts[w] = { users:[], wStart: new Date(w*WEEK) };
+    cohorts[w].users.push({ id: p.id, t });
+  });
+
+  const rows = Object.entries(cohorts).sort((a,b)=>a[0]-b[0]).slice(-8).map(([,{users,wStart}]) => {
+    const lbl = wStart.toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+    const n = users.length;
+    const ret = [1,2,3,4].map(w => {
+      const s = wStart.getTime() + w*WEEK, e2 = s+WEEK;
+      const r = users.filter(u=>(userSess[u.id]||[]).some(t=>t>=s&&t<e2)).length;
+      return n>0 ? Math.round(r/n*100) : 0;
+    });
+    return `<tr><td>${lbl}</td><td>${n}</td>${ret.map(p=>`<td style="color:${p>=30?'#50d278':p>=10?'#F5C842':'rgba(245,240,232,.4)'}">${p}%</td>`).join('')}</tr>`;
+  });
+  set('cohort-tbody', rows.join('') || '<tr><td colspan="6" style="color:rgba(245,240,232,.35);padding:12px">Sin datos</td></tr>');
+}
+
+// ── Comportamiento ────────────────────────────────────────────────────────────
+async function loadComportamiento() {
+  if (cityHasNoUsers()) return;
+
+  const evQ = et => {
+    let q = sb.from('user_events').select('user_id').eq('event_type',et).gte('created_at',F.from).lte('created_at',F.to);
+    if (F.userIds) q = q.in('user_id', F.userIds);
+    return q;
+  };
+  const evQc = et => {
+    let q = sb.from('user_events').select('user_id, created_at, metadata').eq('event_type',et).gte('created_at',F.from).lte('created_at',F.to);
+    if (F.userIds) q = q.in('user_id', F.userIds);
+    return q;
+  };
+
+  const [screensRes, funnelRes0, funnelRes1, funnelRes2, funnelRes3, modeRes, searchRes, rvRes, sessRes, postViewRes] = await Promise.allSettled([
+    (() => {
+      let q = sb.from('user_events').select('event_type, user_id')
+        .in('event_type',['feed_opened','discover_opened','chat_opened','create_opened','profile_viewed'])
+        .gte('created_at',F.from).lte('created_at',F.to);
+      if (F.userIds) q = q.in('user_id', F.userIds);
+      return q;
+    })(),
+    evQ('session_open'),
+    evQ('post_published'),
+    evQ('friend_request_sent'),
+    evQ('quiero_ir_tapped'),
+    evQc('feed_mode_changed'),
+    evQc('search_performed'),
+    evQc('restaurant_viewed'),
+    (() => { let q=sb.from('user_events').select('user_id').eq('event_type','session_open').gte('created_at',F.from).lte('created_at',F.to); if(F.userIds) q=q.in('user_id',F.userIds); return q; })(),
+    (() => { let q=sb.from('user_events').select('user_id').eq('event_type','post_viewed').gte('created_at',F.from).lte('created_at',F.to); if(F.userIds) q=q.in('user_id',F.userIds); return q; })(),
+  ]);
+
+  // Top screens
+  if (screensRes.status==='fulfilled' && screensRes.value.data) {
+    const counts = {};
+    screensRes.value.data.forEach(e => { counts[e.event_type] = (counts[e.event_type]||0)+1; });
+    const labels = { feed_opened:'Feed', discover_opened:'Discover', chat_opened:'Chats', create_opened:'Publicar', profile_viewed:'Perfil' };
+    const data = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([et,n],i)=>({et,n,label:labels[et]||et,rank:i+1}));
+    renderTable('screens',[
+      { label:'#', render:(_,i)=>i+1, rank:true },
+      { label:'Pantalla', key:'label' },
+      { label:'Aperturas', key:'n', right:true, render:r=>fmt(r.n) },
+    ], data);
+  }
+
+  // Funnel
+  const funnelCounts = [funnelRes0,funnelRes1,funnelRes2,funnelRes3].map(r =>
+    r.status==='fulfilled' && r.value.data ? new Set(r.value.data.map(e=>e.user_id)).size : 0
+  );
+  const top = funnelCounts[0] || 1;
+  funnelCounts.forEach((count,i) => {
+    const pct = Math.round(count/top*100);
+    set(`fn-${i}`, fmt(count));
+    if (i>0) set(`fn-pct-${i}`, pct+'%');
+    const bar = document.getElementById(`fn-bar-${i}`);
+    if (bar) { setTimeout(()=>{ bar.style.width = pct+'%'; }, 100); }
+  });
+
+  // Feed mode chart
+  if (modeRes.status==='fulfilled' && modeRes.value.data) {
+    const counts = {};
+    modeRes.value.data.forEach(e => {
+      const m = e.metadata && (typeof e.metadata==='object' ? e.metadata.mode : null);
+      if (m) counts[m] = (counts[m]||0)+1;
+    });
+    const entries = Object.entries(counts);
+    makeBarChart('feedmode-chart', entries.map(([m])=>m), entries.map(([,n])=>n), 'rgba(80,140,255,.5)');
+  }
+
+  // Top searches
+  if (searchRes.status==='fulfilled' && searchRes.value.data) {
+    const counts = {};
+    searchRes.value.data.forEach(e => {
+      const q = e.metadata && (typeof e.metadata==='object' ? e.metadata.query : null);
+      if (q) counts[q] = (counts[q]||0)+1;
+    });
+    const data = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,50).map(([q,n])=>({q,n}));
+    renderTable('searches',[
+      {label:'#',render:(_,i)=>i+1,rank:true},
+      {label:'Búsqueda',key:'q'},
+      {label:'Veces',key:'n',right:true,render:r=>fmt(r.n)},
+    ], data);
+  }
+
+  // Top viewed restaurants
+  if (rvRes.status==='fulfilled' && rvRes.value.data) {
+    const counts = {};
+    rvRes.value.data.forEach(e => {
+      const rn = e.metadata && (typeof e.metadata==='object' ? e.metadata.restaurant_name : null);
+      if (rn) counts[rn] = (counts[rn]||0)+1;
+    });
+    const data = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,50).map(([name,n])=>({name,n}));
+    renderTable('rvrestaurants',[
+      {label:'#',render:(_,i)=>i+1,rank:true},
+      {label:'Restaurante',key:'name'},
+      {label:'Visitas',key:'n',right:true,render:r=>fmt(r.n)},
+    ], data);
+  }
+
+  // Posts per session
+  const sessCount = sessRes.status==='fulfilled' ? (sessRes.value.data||[]).length : 0;
+  const pvCount   = postViewRes.status==='fulfilled' ? (postViewRes.value.data||[]).length : 0;
+  set('c2-posts-per-sess', sessCount>0 ? fmtDec(pvCount/sessCount,1) : '—');
+
+  // Time to first post (last 90 days, all users, no city filter for simplicity)
+  loadTimeToFirstPost();
+}
+
+async function loadTimeToFirstPost() {
+  const ago90 = new Date(Date.now()-90*86400000).toISOString();
+  const [pRes, postsRes] = await Promise.allSettled([
+    sb.from('profiles').select('id, created_at').gte('created_at', ago90).limit(500),
+    sb.from('posts').select('user_id, created_at').gte('created_at', ago90).order('created_at',{ascending:true}).limit(5000),
+  ]);
+  const profiles = pRes.status==='fulfilled' ? pRes.value.data||[] : [];
+  const allPosts = postsRes.status==='fulfilled' ? postsRes.value.data||[] : [];
+  const firstPost = {};
+  allPosts.forEach(p => { if (!firstPost[p.user_id]) firstPost[p.user_id] = new Date(p.created_at); });
+  const deltas = profiles.filter(p=>firstPost[p.id]).map(p=>(firstPost[p.id]-new Date(p.created_at))/3600000);
+  set('c-time-first-post', deltas.length ? fmtDec(deltas.reduce((s,d)=>s+d,0)/deltas.length,1)+'h' : '—');
+}
+
+// ── Contenido ─────────────────────────────────────────────────────────────────
+async function loadContenido() {
+  const [totRes, ptotRes, dataRes, pdataRes, allRes, usersRes, convRes, pConvRes] = await Promise.allSettled([
+    (() => { let q=sb.from('posts').select('*',{count:'exact',head:true}).gte('created_at',F.from).lte('created_at',F.to); if(F.city)q=q.ilike('address',`%${F.city}%`); return q; })(),
+    (() => { let q=sb.from('posts').select('*',{count:'exact',head:true}).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.city)q=q.ilike('address',`%${F.city}%`); return q; })(),
+    (() => { let q=sb.from('posts').select('created_at, selfie_url, restaurant, dish_tags').gte('created_at',F.from).lte('created_at',F.to).limit(5000); if(F.city)q=q.ilike('address',`%${F.city}%`); return q; })(),
+    (() => { let q=sb.from('posts').select('selfie_url').gte('created_at',F.prevFrom).lte('created_at',F.prevTo).limit(5000); if(F.city)q=q.ilike('address',`%${F.city}%`); return q; })(),
+    sb.from('profiles').select('*',{count:'exact',head:true}),
+    // conversion: restaurant_viewed vs quiero_ir_tapped
+    (() => { let q=sb.from('user_events').select('event_type').in('event_type',['restaurant_viewed','quiero_ir_tapped']).gte('created_at',F.from).lte('created_at',F.to); if(F.userIds)q=q.in('user_id',F.userIds); return q; })(),
+    (() => { let q=sb.from('user_events').select('event_type').in('event_type',['restaurant_viewed','quiero_ir_tapped']).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.userIds)q=q.in('user_id',F.userIds); return q; })(),
+    sb.from('profiles').select('*',{count:'exact',head:true}), // placeholder
+  ]);
+
+  const total = totRes.status==='fulfilled' ? totRes.value.count : null;
+  const pTotal = ptotRes.status==='fulfilled' ? ptotRes.value.count : null;
+  const posts = dataRes.status==='fulfilled' ? dataRes.value.data||[] : [];
+  const pPosts = pdataRes.status==='fulfilled' ? pdataRes.value.data||[] : [];
+  const totalUsers = allRes.status==='fulfilled' ? allRes.value.count : null;
+
+  const selfPct = posts.length>0 ? posts.filter(p=>p.selfie_url).length/posts.length*100 : null;
+  const pSelfPct = pPosts.length>0 ? pPosts.filter(p=>p.selfie_url).length/pPosts.length*100 : null;
+  const restCount = new Set(posts.map(p=>p.restaurant).filter(Boolean)).size;
+  const pRestCount = new Set(pPosts.map(p=>p.selfie_url).filter(Boolean)).size; // only selfie_url in prev fetch
+  const rangeWeeks = Math.max(1,(new Date(F.to)-new Date(F.from))/(7*86400000));
+  const avg = (total!==null&&totalUsers&&totalUsers>0) ? total/totalUsers/rangeWeeks : null;
+  const pAvg = (pTotal!==null&&totalUsers&&totalUsers>0) ? pTotal/totalUsers/rangeWeeks : null;
+
+  // conversion
+  const convEvents = convRes.status==='fulfilled' ? convRes.value.data||[] : [];
+  const pConvEvents = pConvRes.status==='fulfilled' ? pConvRes.value.data||[] : [];
+  const calcConv = evs => {
+    const viewed = evs.filter(e=>e.event_type==='restaurant_viewed').length;
+    const saved = evs.filter(e=>e.event_type==='quiero_ir_tapped').length;
+    return viewed>0 ? saved/viewed*100 : null;
+  };
+  const conv = calcConv(convEvents), pConv = calcConv(pConvEvents);
+
+  set('c-total', fmt(total));       set('c-total-d', delta(total, pTotal));
+  set('c-avg', fmtDec(avg, 2));     set('c-avg-d', delta(avg, pAvg));
+  set('c-selfie', fmtPct(selfPct)); set('c-selfie-d', delta(selfPct, pSelfPct));
+  set('c-rests', fmt(restCount));   set('c-rests-d', '');
+  set('c-conversion', conv!==null ? fmtDec(conv,1)+'%' : '—'); set('c-conversion-d', delta(conv, pConv));
+
+  // Posts by day chart
+  const dayMap = buildDayMap(F.from, F.to);
+  posts.forEach(p => { const d=p.created_at?.slice(0,10); if(d&&d in dayMap) dayMap[d]++; });
+  makeBarChart('posts-chart', Object.keys(dayMap).map(d=>d.slice(5)), Object.values(dayMap), 'rgba(196,98,45,.5)');
+
+  // Top tables — use full posts fetch
+  const { data: fullPosts } = await sb.from('posts').select('restaurant, dish_tags').gte('created_at',F.from).lte('created_at',F.to).limit(5000);
+  const fp = fullPosts || posts;
+  const restCounts={}, dishCounts={};
+  fp.forEach(p=>{
+    if(p.restaurant) restCounts[p.restaurant]=(restCounts[p.restaurant]||0)+1;
+    const dt=p.dish_tags;
+    if(Array.isArray(dt)) dt.forEach(d=>{if(d)dishCounts[d]=(dishCounts[d]||0)+1;});
+  });
+  const mkData = c => Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,100).map(([name,n])=>({name,n}));
+  const rankCols = [{label:'#',render:(_,i)=>i+1,rank:true},{label:'Nombre',key:'name'},{label:'Posts',key:'n',right:true,render:r=>fmt(r.n)}];
+  renderTable('top-rests', rankCols, mkData(restCounts));
+  renderTable('top-dishes', [{label:'#',render:(_,i)=>i+1,rank:true},{label:'Plato',key:'name'},{label:'Menciones',key:'n',right:true,render:r=>fmt(r.n)}], mkData(dishCounts));
+}
+
+// ── Social ────────────────────────────────────────────────────────────────────
+async function loadSocial() {
+  const [frRes, frpRes, reRes, coRes, svRes, tpRes, tuRes, frByUserRes, reqRes, preqRes] = await Promise.allSettled([
+    sb.from('friendships').select('*',{count:'exact',head:true}).eq('status','accepted'),
+    sb.from('friendships').select('*',{count:'exact',head:true}).eq('status','accepted').lte('created_at',F.prevTo),
+    sb.from('reactions').select('*',{count:'exact',head:true}).gte('created_at',F.from).lte('created_at',F.to),
+    sb.from('comments').select('*',{count:'exact',head:true}).gte('created_at',F.from).lte('created_at',F.to),
+    sb.from('saved_posts').select('*',{count:'exact',head:true}).gte('created_at',F.from).lte('created_at',F.to),
+    sb.from('posts').select('*',{count:'exact',head:true}),
+    sb.from('profiles').select('*',{count:'exact',head:true}),
+    sb.from('friendships').select('sender_id, receiver_id').eq('status','accepted'),
+    (() => { let q=sb.from('user_events').select('event_type').in('event_type',['friend_request_sent','friend_request_accepted','friend_request_rejected']).gte('created_at',F.from).lte('created_at',F.to); if(F.userIds)q=q.in('user_id',F.userIds); return q; })(),
+    (() => { let q=sb.from('user_events').select('event_type').in('event_type',['friend_request_sent','friend_request_accepted','friend_request_rejected']).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.userIds)q=q.in('user_id',F.userIds); return q; })(),
+  ]);
+
+  const fr = frRes.status==='fulfilled' ? frRes.value.count : null;
+  const pfr = frpRes.status==='fulfilled' ? frpRes.value.count : null;
+  const re = reRes.status==='fulfilled' ? reRes.value.count : null;
+  const co = coRes.status==='fulfilled' ? coRes.value.count : null;
+  const sv = svRes.status==='fulfilled' ? svRes.value.count : null;
+  const tp = tpRes.status==='fulfilled' ? tpRes.value.count : null;
+  const tu = tuRes.status==='fulfilled' ? tuRes.value.count : null;
+
+  let avgFriends = null, fewPct = null;
+  if (frByUserRes.status==='fulfilled' && frByUserRes.value.data && tu) {
+    const perUser = {};
+    frByUserRes.value.data.forEach(r => {
+      perUser[r.sender_id]=(perUser[r.sender_id]||0)+1;
+      perUser[r.receiver_id]=(perUser[r.receiver_id]||0)+1;
+    });
+    const vals = Object.values(perUser);
+    avgFriends = vals.length>0 ? vals.reduce((s,v)=>s+v,0)/vals.length : 0;
+    const usersWithFew = vals.filter(v=>v<3).length;
+    fewPct = ((usersWithFew + Math.max(0, tu-vals.length))/tu)*100;
+  }
+
+  set('s-friends', fmt(fr));         set('s-friends-d', delta(fr, pfr));
+  set('s-avg-friends', fmtDec(avgFriends,1));
+  set('s-few-friends', fmtPct(fewPct));
+  set('s-reactions', fmt(re));        set('s-reactions-d', '');
+  set('s-avg-reactions', tp&&re ? fmtDec(re/tp,2) : '—');
+  set('s-comments', fmt(co));         set('s-comments-d', '');
+  set('s-saved', fmt(sv));            set('s-saved-d', '');
+
+  // Friend request events
+  const req = reqRes.status==='fulfilled' ? reqRes.value.data||[] : [];
+  const preq= preqRes.status==='fulfilled' ? preqRes.value.data||[] : [];
+  const cnt = (evs,et) => evs.filter(e=>e.event_type===et).length;
+  const sent = cnt(req,'friend_request_sent'), acc = cnt(req,'friend_request_accepted'), rej = cnt(req,'friend_request_rejected');
+  const psent= cnt(preq,'friend_request_sent'), pacc= cnt(preq,'friend_request_accepted');
+  const rate = sent>0 ? acc/sent*100 : null;
+  set('s-req-sent', fmt(sent));    set('s-req-sent-d', delta(sent, psent));
+  set('s-req-acc', fmt(acc));      set('s-req-acc-d', delta(acc, pacc));
+  set('s-req-rej', fmt(rej));
+  set('s-accept-rate', rate!==null ? fmtDec(rate,1)+'%' : '—');
 }
 
 // ── B2B ───────────────────────────────────────────────────────────────────────
-
 async function loadB2B() {
-  const [wlRes, bizRes, postsRes, bizNamesRes] = await Promise.allSettled([
-    sb.from('business_waitlist').select('*', { count: 'exact', head: true }),
-    sb.from('business_accounts').select('id, status, plan'),
-    sb.from('posts').select('restaurant_name'),
+  const [wlRes, pwlRes, bizRes, postsAllRes, bizNamesRes, wlChartRes, outreachRes] = await Promise.allSettled([
+    sb.from('business_waitlist').select('*',{count:'exact',head:true}),
+    sb.from('business_waitlist').select('*',{count:'exact',head:true}).lte('created_at',F.prevTo),
+    sb.from('business_accounts').select('id, status, plan, restaurant_name'),
+    sb.from('posts').select('restaurant').limit(5000),
     sb.from('business_accounts').select('restaurant_name'),
+    sb.from('business_waitlist').select('created_at').gte('created_at',F.from).lte('created_at',F.to).order('created_at',{ascending:true}),
+    sb.from('business_outreach').select('restaurant_name, contacted_at').order('contacted_at',{ascending:false}),
   ]);
 
-  const waitlist = wlRes.status === 'fulfilled' ? wlRes.value.count : null;
+  const waitlist = wlRes.status==='fulfilled' ? wlRes.value.count : null;
+  const pWaitlist= pwlRes.status==='fulfilled' ? pwlRes.value.count : null;
 
-  let registered = null, verified = null, mrr = null;
-  const planCounts = { free: 0, starter: 0, premium: 0 };
-
-  if (bizRes.status === 'fulfilled' && bizRes.value.data) {
+  let registered=null, verified=null, mrr=null;
+  const planCounts = { free:0, starter:0, premium:0 };
+  if (bizRes.status==='fulfilled' && bizRes.value.data) {
     const biz = bizRes.value.data;
-    registered = biz.length;
-    verified = biz.filter(b => b.status === 'verified').length;
-    biz.forEach(b => {
-      const plan = (b.plan || 'free').toLowerCase();
-      if (plan in planCounts) planCounts[plan]++;
-    });
-    mrr = planCounts.starter * PLAN_PRICES.starter + planCounts.premium * PLAN_PRICES.premium;
+    registered = biz.length; verified = biz.filter(b=>b.status==='verified').length;
+    biz.forEach(b => { const p=(b.plan||'free').toLowerCase(); if(p in planCounts) planCounts[p]++; });
+    mrr = planCounts.starter*PLAN_PRICES.starter + planCounts.premium*PLAN_PRICES.premium;
   }
 
-  set('b-waitlist', fmt(waitlist));
+  set('b-waitlist', fmt(waitlist));    set('b-waitlist-d', delta(waitlist, pWaitlist));
   set('b-registered', fmt(registered));
   set('b-verified', fmt(verified));
-  set('b-mrr', mrr !== null ? fmt(mrr) + ' €' : '—');
+  set('b-mrr', mrr!==null ? fmt(mrr)+' €' : '—');
 
-  if (registered !== null) {
+  if (registered!==null) {
     set('b-plans-wrap', [['free','Free',planCounts.free],['starter','Starter',planCounts.starter],['premium','Premium',planCounts.premium]]
-      .map(([k,l,n]) => `<div class="plan-row"><span class="plan-pill ${k}">${l}</span><span style="font-family:var(--serif);font-size:20px">${fmt(n)}</span></div>`)
+      .map(([k,l,n])=>`<div class="plan-row"><span class="plan-pill ${k}">${l}</span><span style="font-family:var(--serif);font-size:20px">${fmt(n)}</span></div>`)
       .join(''));
   }
 
-  if (postsRes.status === 'fulfilled' && postsRes.value.data && bizNamesRes.status === 'fulfilled' && bizNamesRes.value.data) {
-    const postCounts = {};
-    postsRes.value.data.forEach(p => { if (p.restaurant_name) postCounts[p.restaurant_name] = (postCounts[p.restaurant_name] || 0) + 1; });
-    const bizNames = new Set(bizNamesRes.value.data.map(b => b.restaurant_name?.toLowerCase()).filter(Boolean));
-    const candidates = Object.entries(postCounts)
-      .filter(([name, n]) => n >= 5 && !bizNames.has(name.toLowerCase()))
-      .sort((a, b) => b[1] - a[1]).slice(0, 20);
-    renderTopTable('top-unregistered', 'Restaurante', 'Menciones', Object.fromEntries(candidates));
+  // Waitlist growth chart
+  if (wlChartRes.status==='fulfilled' && wlChartRes.value.data) {
+    const dayMap = buildDayMap(F.from, F.to);
+    wlChartRes.value.data.forEach(r => { const d=r.created_at.slice(0,10); if(d in dayMap) dayMap[d]++; });
+    makeLineChart('waitlist-chart', Object.keys(dayMap).map(d=>d.slice(5)), [{
+      data: Object.values(dayMap), borderColor:'rgba(80,200,120,.8)', backgroundColor:'rgba(80,200,120,.1)',
+      tension:0.3, fill:true, pointRadius:2,
+    }]);
   }
+
+  // Contacted names
+  const outreachData = outreachRes.status==='fulfilled' ? outreachRes.value.data||[] : [];
+  const outreachError = outreachRes.status==='fulfilled' ? outreachRes.value.error : null;
+  const contactedNames = new Set(outreachData.map(o=>o.restaurant_name.toLowerCase()));
+
+  // Candidates
+  if (postsAllRes.status==='fulfilled' && postsAllRes.value.data && bizNamesRes.status==='fulfilled' && bizNamesRes.value.data) {
+    const postCounts = {};
+    postsAllRes.value.data.forEach(p=>{ if(p.restaurant) postCounts[p.restaurant]=(postCounts[p.restaurant]||0)+1; });
+    const bizNames = new Set(bizNamesRes.value.data.map(b=>b.restaurant_name?.toLowerCase()).filter(Boolean));
+    const candidates = Object.entries(postCounts)
+      .filter(([name,n])=>n>=5 && !bizNames.has(name.toLowerCase()) && !contactedNames.has(name.toLowerCase()))
+      .sort((a,b)=>b[1]-a[1]).slice(0,100)
+      .map(([name,n])=>({name,n}));
+    renderTable('candidates',[
+      {label:'#',render:(_,i)=>i+1,rank:true},
+      {label:'Restaurante',key:'name'},
+      {label:'Menciones',key:'n',right:true,render:r=>fmt(r.n)},
+      {label:'',render:r=>`<button class="outreach-btn" onclick="markContacted(${JSON.stringify(r.name)})">Contactar</button>`},
+    ], candidates);
+  }
+
+  // Already contacted
+  if (outreachData.length>0) {
+    renderTable('contacted',[
+      {label:'Restaurante',key:'restaurant_name'},
+      {label:'Fecha',key:'contacted_at',render:r=>new Date(r.contacted_at).toLocaleDateString('es-ES')},
+    ], outreachData);
+    const sec = document.getElementById('contacted-section');
+    if (sec) sec.style.display='';
+  }
+}
+
+async function markContacted(name) {
+  const { error } = await sb.from('business_outreach').insert({ restaurant_name: name });
+  if (error) {
+    if (error.code==='42P01') {
+      alert('La tabla business_outreach no existe aún. Ejecútala en Supabase SQL Editor:\n\nCREATE TABLE business_outreach (\n  id uuid default gen_random_uuid() primary key,\n  restaurant_name text not null,\n  contacted_at timestamptz default timezone(\'utc\', now()),\n  notes text\n);');
+    } else {
+      alert('Error al guardar: ' + error.message);
+    }
+    return;
+  }
+  await loadB2B();
 }
 
 // ── Mapa ──────────────────────────────────────────────────────────────────────
+function haversineM(la1,lo1,la2,lo2){const R=6371000,dL=(la2-la1)*Math.PI/180,dO=(lo2-lo1)*Math.PI/180,a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dO/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+
+function clusterPoints(pts, radius) {
+  const used = new Uint8Array(pts.length);
+  const clusters = [];
+  for (let i=0;i<pts.length;i++) {
+    if (used[i]) continue;
+    const cl=[pts[i]]; used[i]=1;
+    for (let j=i+1;j<pts.length;j++) {
+      if (!used[j] && haversineM(pts[i].lat,pts[i].lng,pts[j].lat,pts[j].lng)<=radius) { cl.push(pts[j]); used[j]=1; }
+    }
+    const n=cl.length;
+    clusters.push({ lat:cl.reduce((s,p)=>s+p.lat,0)/n, lng:cl.reduce((s,p)=>s+p.lng,0)/n, count:n, items:cl });
+  }
+  return clusters;
+}
 
 async function loadMapa() {
-  if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+  if (leafletMap) { leafletMap.remove(); leafletMap=null; }
+  leafletMap = L.map('map-container').setView([40.4168,-3.7038],6);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © Carto',maxZoom:19}).addTo(leafletMap);
 
-  leafletMap = L.map('map-container').setView([40.4168, -3.7038], 6);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © Carto', maxZoom: 19,
-  }).addTo(leafletMap);
-
-  const [postsRes, bizRes] = await Promise.allSettled([
-    sb.from('posts').select('id, lat, lng, restaurant_name').not('lat', 'is', null).not('lng', 'is', null),
-    sb.from('business_accounts').select('id, restaurant_name, lat, lng').not('lat', 'is', null).not('lng', 'is', null),
+  const [postsRes, bizRes, rvRes, pPostsRes] = await Promise.allSettled([
+    sb.from('posts').select('id,lat,lng,restaurant').not('lat','is',null).not('lng','is',null).gte('created_at',F.from).lte('created_at',F.to).limit(2000),
+    sb.from('business_accounts').select('id,restaurant_name,lat,lng').not('lat','is',null).not('lng','is',null),
+    (() => { let q=sb.from('user_events').select('metadata').eq('event_type','restaurant_viewed').gte('created_at',F.from).lte('created_at',F.to).limit(2000); if(F.userIds)q=q.in('user_id',F.userIds); return q; })(),
+    sb.from('posts').select('lat,lng').not('lat','is',null).not('lng','is',null).gte('created_at',F.prevFrom).lte('created_at',F.prevTo).limit(2000),
   ]);
 
-  if (postsRes.status === 'fulfilled' && postsRes.value.data) {
-    const posts = postsRes.value.data.filter(p => p.lat && p.lng);
-    const RADIUS = 500;
-    const used = new Uint8Array(posts.length);
-
-    for (let i = 0; i < posts.length; i++) {
-      if (used[i]) continue;
-      const cluster = [posts[i]];
-      used[i] = 1;
-      for (let j = i + 1; j < posts.length; j++) {
-        if (!used[j] && haversineM(posts[i].lat, posts[i].lng, posts[j].lat, posts[j].lng) <= RADIUS) {
-          cluster.push(posts[j]); used[j] = 1;
-        }
-      }
-      const count = cluster.length;
-      const lat = cluster.reduce((s, p) => s + p.lat, 0) / count;
-      const lng = cluster.reduce((s, p) => s + p.lng, 0) / count;
-      const r   = Math.max(8, Math.min(40, 8 + count * 3));
-      const col = count >= 7 ? '#50d278' : count >= 5 ? '#F5C842' : '#E05050';
-      const names = [...new Set(cluster.map(p => p.restaurant_name).filter(Boolean))].slice(0, 3).join(', ');
-      L.circleMarker([lat, lng], { radius: r, fillColor: col, color: col, fillOpacity: 0.55, weight: 1 })
-        .bindPopup(`<strong>${fmt(count)} post${count > 1 ? 's' : ''}</strong><br>${esc(names)}`)
+  // Posts clusters (layer 1)
+  if (postsRes.status==='fulfilled' && postsRes.value.data) {
+    const pts = postsRes.value.data.filter(p=>p.lat&&p.lng);
+    const pPts = pPostsRes.status==='fulfilled' ? pPostsRes.value.data||[] : [];
+    const prevByArea = {};
+    pPts.forEach(p => { const k=`${Math.round(p.lat*10)}_${Math.round(p.lng*10)}`; prevByArea[k]=(prevByArea[k]||0)+1; });
+    clusterPoints(pts,500).forEach(cl => {
+      const r=Math.max(8,Math.min(40,8+cl.count*3));
+      const col=cl.count>=7?'#50d278':cl.count>=5?'#F5C842':'#E05050';
+      const names=[...new Set(cl.items.map(p=>p.restaurant).filter(Boolean))].slice(0,3).join(', ');
+      const areaKey=`${Math.round(cl.lat*10)}_${Math.round(cl.lng*10)}`;
+      const prev=prevByArea[areaKey]||0;
+      const deltaTxt = prev>0 ? ` <span style="color:${cl.count>=prev?'#50d278':'#E05050'}">${cl.count>=prev?'↑':'↓'} ${Math.abs(Math.round((cl.count-prev)/prev*100))}%</span>` : '';
+      L.circleMarker([cl.lat,cl.lng],{radius:r,fillColor:col,color:col,fillOpacity:0.55,weight:1})
+        .bindPopup(`<strong>${fmt(cl.count)} post${cl.count>1?'s':''}</strong>${deltaTxt}<br>${esc(names)}`)
         .addTo(leafletMap);
-    }
+    });
   }
 
-  if (bizRes.status === 'fulfilled' && bizRes.value.data) {
-    const sqIcon = L.divIcon({
-      html: '<div style="width:12px;height:12px;background:#C4622D;border:2px solid rgba(245,240,232,.6);border-radius:2px"></div>',
-      iconSize: [12, 12], iconAnchor: [6, 6], className: '',
+  // Business markers (layer 2)
+  if (bizRes.status==='fulfilled' && bizRes.value.data) {
+    const sqIcon=L.divIcon({html:'<div style="width:12px;height:12px;background:#C4622D;border:2px solid rgba(245,240,232,.6);border-radius:2px"></div>',iconSize:[12,12],iconAnchor:[6,6],className:''});
+    bizRes.value.data.forEach(b=>{
+      if (!b.lat||!b.lng) return;
+      L.marker([b.lat,b.lng],{icon:sqIcon}).bindPopup(`<strong>${esc(b.restaurant_name??'—')}</strong><br>Negocio registrado`).addTo(leafletMap);
     });
-    bizRes.value.data.forEach(b => {
-      if (!b.lat || !b.lng) return;
-      L.marker([b.lat, b.lng], { icon: sqIcon })
-        .bindPopup(`<strong>${esc(b.restaurant_name ?? '—')}</strong><br>Negocio registrado`)
+  }
+
+  // restaurant_viewed events (layer 3)
+  if (rvRes.status==='fulfilled' && rvRes.value.data) {
+    const pts = rvRes.value.data
+      .map(e=>e.metadata&&typeof e.metadata==='object'?e.metadata:null)
+      .filter(m=>m&&m.lat&&m.lng)
+      .map(m=>({lat:Number(m.lat),lng:Number(m.lng),name:m.restaurant_name||'—'}));
+    clusterPoints(pts,500).forEach(cl=>{
+      const r=Math.max(6,Math.min(30,6+cl.count*2));
+      const names=[...new Set(cl.items.map(p=>p.name).filter(Boolean))].slice(0,3).join(', ');
+      L.circleMarker([cl.lat,cl.lng],{radius:r,fillColor:'#4A90D9',color:'#4A90D9',fillOpacity:0.5,weight:1})
+        .bindPopup(`<strong>${fmt(cl.count)} vista${cl.count>1?'s':''}</strong><br>${esc(names)}`)
         .addTo(leafletMap);
     });
   }
 }
 
-// ── Scroll spy ────────────────────────────────────────────────────────────────
+// ── Auth & init ───────────────────────────────────────────────────────────────
+function showAccessDenied() {
+  document.body.innerHTML=`<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);font-family:var(--sans)"><div style="text-align:center;padding:48px 32px;background:rgba(245,240,232,.04);border:0.5px solid rgba(245,240,232,.1);border-radius:16px;max-width:360px"><div style="font-family:var(--serif);font-size:28px;font-weight:300;color:var(--cream);margin-bottom:10px">Acceso denegado</div><div style="font-size:14px;color:rgba(245,240,232,.45);margin-bottom:28px">Esta página es solo para administradores de Yumlist.</div><button onclick="sb.auth.signOut().then(()=>location.replace('/business/login'))" style="background:var(--clay);border:none;color:var(--cream);font-family:var(--sans);font-size:14px;padding:10px 24px;border-radius:20px;cursor:pointer">Cerrar sesión</button></div></div>`;
+}
 
 function setupScrollSpy() {
   const links = document.querySelectorAll('.sidebar-nav a');
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (e.isIntersecting) {
-        const id = e.target.id;
-        links.forEach(a => a.classList.toggle('active', a.dataset.section === id));
+        const id=e.target.id;
+        links.forEach(a=>a.classList.toggle('active',a.dataset.section===id));
       }
     });
-  }, { rootMargin: '-30% 0px -60% 0px' });
-  document.querySelectorAll('.section').forEach(s => obs.observe(s));
+  }, { rootMargin:'-20% 0px -70% 0px' });
+  document.querySelectorAll('.section').forEach(s=>obs.observe(s));
+}
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.replace('/business/login'); return; }
+  if (session.user.email !== ADMIN_EMAIL) { showAccessDenied(); return; }
+  set('sidebar-email', esc(session.user.email));
+  await loadCities();
+  await applyFilters();
+  setupScrollSpy();
 }
 
 init();
