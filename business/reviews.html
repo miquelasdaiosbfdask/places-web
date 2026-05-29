@@ -69,7 +69,7 @@ async function init() {
     const user    = p.profiles ?? {};
     const photos  = Array.isArray(p.photos) ? p.photos : (p.photo_url ? [p.photo_url] : []);
     const photoHtml = photos[0] ? `<img src="${photos[0]}" class="review-photo" alt="" loading="lazy">` : '';
-    const tags = (p.dish_tags ?? p.tags ?? []).slice(0, 5).map(t => `<span class="tag">${t}</span>`).join('');
+    const tags = (p.dish_tags ?? p.tags ?? []).slice(0, 5).map(t => `<span class="tag">${esc(t)}</span>`).join('');
     const food    = p.rating_food    ?? p.nota_comida    ?? p.nota ?? null;
     const service = p.rating_service ?? p.nota_servicio ?? null;
     const price   = p.rating_price   ?? p.nota_precio   ?? null;
@@ -87,7 +87,7 @@ async function init() {
       responseSection = `
         <div class="review-response">
           <div class="review-response-label">Respuesta del restaurante</div>
-          <div class="review-response-text">${existingResponse.respuesta}</div>
+          <div class="review-response-text">${esc(existingResponse.respuesta)}</div>
         </div>`;
     } else if (canRespond) {
       responseSection = `
@@ -112,14 +112,14 @@ async function init() {
         <div class="review-user">
           <div class="review-avatar">${user.avatar_url ? `<img src="${user.avatar_url}" alt="">` : ''}</div>
           <div>
-            <div class="review-username">${user.username ?? user.display_name ?? 'Usuario'}</div>
+            <div class="review-username">${esc(user.username ?? user.display_name ?? 'Usuario')}</div>
             <div class="review-date">${formatDate(p.created_at)}</div>
           </div>
         </div>
       </div>
       ${photoHtml}
       ${ratingsHtml ? `<div class="review-ratings">${ratingsHtml}</div>` : ''}
-      ${p.description ? `<div class="review-description">${p.description}</div>` : ''}
+      ${p.description ? `<div class="review-description">${esc(p.description)}</div>` : ''}
       ${tags ? `<div class="review-tags">${tags}</div>` : ''}
       ${responseSection}
     </div>`;
@@ -178,7 +178,7 @@ async function submitResponse(postId, businessId) {
   responseDiv.className = 'review-response';
   responseDiv.innerHTML = `
     <div class="review-response-label">Respuesta del restaurante</div>
-    <div class="review-response-text">${respuesta}</div>
+    <div class="review-response-text">${esc(respuesta)}</div>
   `;
   card.appendChild(responseDiv);
 }

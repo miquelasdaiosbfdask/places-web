@@ -126,19 +126,12 @@
   let businessId = null;
 
   async function init() {
-    // Accept session OR recent registration (sessionStorage fallback)
     const { data: { session } } = await sb.auth.getSession();
-
-    if (session) {
-      const account = await getBusinessAccount(session.user.id);
-      businessId = account?.id ?? sessionStorage.getItem('biz_id');
-    } else {
-      businessId = sessionStorage.getItem('biz_id');
-      if (!businessId) {
-        window.location.replace('/business/login');
-        return;
-      }
+    if (!session) {
+      window.location.replace('/business/login');
+      return;
     }
+    businessId = session.user.id;
 
     // File selection
     const fileInput = document.getElementById('doc-file');
@@ -159,6 +152,11 @@
       alerts.innerHTML = '';
 
       if (!file) return;
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/heic'];
+      if (!allowedTypes.includes(file.type)) {
+        alerts.innerHTML = '<div class="alert alert-error">Formato no válido. Usa PDF, JPG o PNG.</div>';
+        return;
+      }
       if (file.size > 10 * 1024 * 1024) {
         alerts.innerHTML = '<div class="alert alert-error">El archivo supera los 10 MB.</div>';
         return;
@@ -167,8 +165,8 @@
       uploadBtn.textContent = 'Subiendo...';
       uploadBtn.disabled    = true;
 
-      const ext      = file.name.split('.').pop();
-      const path     = `${businessId}/${Date.now()}.${ext}`;
+      const ext      = file.name.split('.').pop().toLowerCase();
+      const path     = `${businessId}/${crypto.randomUUID()}.${ext}`;
 
       // Upload to Storage
       const { error: storageError } = await sb.storage
@@ -192,7 +190,6 @@
       // Show success
       document.getElementById('upload-section').style.display = 'none';
       document.getElementById('success-msg').style.display    = 'block';
-      sessionStorage.removeItem('biz_id');
     });
 
   }

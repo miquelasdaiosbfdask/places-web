@@ -105,9 +105,9 @@ async function init() {
   });
   const topDishes = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
-  // Saved posts (Quiero ir)
+  // Saved posts (Quiero ir) — Pro only
   let quieroIr = 0;
-  if (posts.length > 0) {
+  if (isPro && posts.length > 0) {
     const { data: saves } = await sb.from('saved_posts').select('user_id').in('post_id', posts.map(p => p.id));
     quieroIr = saves ? new Set(saves.map(s => s.user_id)).size : 0;
   }
@@ -119,9 +119,9 @@ async function init() {
   posts.forEach(p => { userPostCount[p.user_id] = (userPostCount[p.user_id] ?? 0) + 1; });
   const ambassadors = Object.entries(userPostCount).filter(([, c]) => c > 1).length;
 
-  // Nearby restaurants (500m) — fetch posts in wider bounding box
+  // Nearby restaurants (500m) — Premium only
   let nearbyAvg = '—';
-  if (account?.lat && account?.lng) {
+  if (isPrem && account?.lat && account?.lng) {
     const delta = 0.0045; // ~500m
     const { data: nearbyPosts } = await sb.from('posts')
       .select('lat,lng,rating_food,nota_comida,nota,rating_service,nota_servicio,rating_price,nota_precio')

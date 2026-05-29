@@ -87,7 +87,7 @@ async function init() {
           ? `<img src="${photos[0]}" class="review-photo" alt="" loading="lazy">`
           : '';
         const tags = (p.dish_tags ?? p.tags ?? []).slice(0, 4)
-          .map(t => `<span class="tag">${t}</span>`).join('');
+          .map(t => `<span class="tag">${esc(t)}</span>`).join('');
         const food    = p.rating_food    ?? p.nota_comida    ?? p.nota ?? '—';
         const service = p.rating_service ?? p.nota_servicio ?? '—';
         const price   = p.rating_price   ?? p.nota_precio   ?? '—';
@@ -99,7 +99,7 @@ async function init() {
                 ${user.avatar_url ? `<img src="${user.avatar_url}" alt="">` : ''}
               </div>
               <div>
-                <div class="review-username">${user.username ?? user.display_name ?? 'Usuario'}</div>
+                <div class="review-username">${esc(user.username ?? user.display_name ?? 'Usuario')}</div>
                 <div class="review-date">${formatDate(p.created_at)}</div>
               </div>
             </div>
@@ -110,7 +110,7 @@ async function init() {
             ${service !== '—' ? `<div class="rating-item"><div class="rating-dot"></div>Servicio: ${service}</div>` : ''}
             ${price !== '—'   ? `<div class="rating-item"><div class="rating-dot"></div>Precio: ${price}</div>` : ''}
           </div>
-          ${p.description ? `<div class="review-description">${p.description}</div>` : ''}
+          ${p.description ? `<div class="review-description">${esc(p.description)}</div>` : ''}
           ${tags ? `<div class="review-tags">${tags}</div>` : ''}
         </div>`;
       }).join('');

@@ -105,6 +105,9 @@ async function init() {
   const session = await requireAdmin();
   if (!session) return;
 
+  const { data: isAdmin } = await sb.from('admin_users').select('user_id').eq('user_id', session.user.id).maybeSingle();
+  if (!isAdmin) { window.location.replace('/business/login'); return; }
+
   document.getElementById('sidebar-mount').innerHTML = buildSidebar(
     { restaurant_name: 'Admin', status: 'verified', plan: 'premium' },
     '/business/admin'
@@ -152,32 +155,47 @@ async function loadPending() {
   content.innerHTML = docs.map(doc => {
     const acc = doc.business_accounts ?? {};
     return `
-      <div class="verification-card" id="doc-${doc.id}">
-        <div class="verification-name">${acc.restaurant_name ?? '—'}</div>
+      <div class="verification-card" id="doc-${escHtml(doc.id)}">
+        <div class="verification-name">${escHtml(acc.restaurant_name ?? '—')}</div>
         <div class="verification-meta">
-          <span>CIF: ${acc.cif ?? '—'}</span>
-          <span>Titular: ${acc.owner_name ?? '—'}</span>
-          <span>Ciudad: ${acc.city ?? '—'}</span>
+          <span>CIF: ${escHtml(acc.cif ?? '—')}</span>
+          <span>Titular: ${escHtml(acc.owner_name ?? '—')}</span>
+          <span>Ciudad: ${escHtml(acc.city ?? '—')}</span>
           <span>Recibido: ${formatDate(doc.created_at)}</span>
         </div>
         <div style="margin-bottom:12px">
-          <a href="#" class="doc-link" id="doc-link-${doc.id}" onclick="getDocUrl('${doc.document_url}', '${doc.id}'); return false;">
+          <a href="#" class="doc-link" id="doc-link-${escHtml(doc.id)}"
+            data-doc-path="${escHtml(doc.document_url)}" data-doc-id="${escHtml(doc.id)}">
             Ver documento →
           </a>
-          <span id="doc-url-${doc.id}" style="font-size:12px;color:rgba(245,240,232,.35);margin-left:8px"></span>
+          <span id="doc-url-${escHtml(doc.id)}" style="font-size:12px;color:rgba(245,240,232,.35);margin-left:8px"></span>
         </div>
         <div class="verification-actions">
-          <button class="btn-approve" onclick="approveDoc('${doc.id}', '${acc.id}', '${acc.id}')">Aprobar</button>
-          <button class="btn-reject"  onclick="toggleReject('${doc.id}')">Rechazar</button>
+          <button class="btn-approve" data-doc-id="${escHtml(doc.id)}" data-account-id="${escHtml(acc.id)}">Aprobar</button>
+          <button class="btn-reject"  data-doc-id="${escHtml(doc.id)}">Rechazar</button>
         </div>
-        <div class="reject-form" id="rf-${doc.id}">
-          <textarea class="form-input" id="rt-${doc.id}" placeholder="Motivo del rechazo (se enviará por email)..." style="margin-top:8px;margin-bottom:8px"></textarea>
-          <button class="btn-sm" onclick="rejectDoc('${doc.id}', '${acc.id}', '${acc.id}')">Confirmar rechazo</button>
-          <div id="rm-${doc.id}" style="margin-top:6px;font-size:12px;color:var(--muted)"></div>
+        <div class="reject-form" id="rf-${escHtml(doc.id)}">
+          <textarea class="form-input" id="rt-${escHtml(doc.id)}" placeholder="Motivo del rechazo (se enviará por email)..." style="margin-top:8px;margin-bottom:8px"></textarea>
+          <button class="btn-sm btn-reject-confirm" data-doc-id="${escHtml(doc.id)}" data-account-id="${escHtml(acc.id)}">Confirmar rechazo</button>
+          <div id="rm-${escHtml(doc.id)}" style="margin-top:6px;font-size:12px;color:var(--muted)"></div>
         </div>
-        <div id="action-msg-${doc.id}" style="margin-top:10px;font-size:13px"></div>
+        <div id="action-msg-${escHtml(doc.id)}" style="margin-top:10px;font-size:13px"></div>
       </div>`;
   }).join('');
+
+  // Attach event listeners after innerHTML is set (avoids data injection in onclick)
+  content.querySelectorAll('.doc-link[data-doc-path]').forEach(a => {
+    a.addEventListener('click', e => { e.preventDefault(); getDocUrl(a.dataset.docPath, a.dataset.docId); });
+  });
+  content.querySelectorAll('.btn-approve[data-doc-id]').forEach(btn => {
+    btn.addEventListener('click', () => approveDoc(btn.dataset.docId, btn.dataset.accountId));
+  });
+  content.querySelectorAll('.btn-reject[data-doc-id]').forEach(btn => {
+    btn.addEventListener('click', () => toggleReject(btn.dataset.docId));
+  });
+  content.querySelectorAll('.btn-reject-confirm[data-doc-id]').forEach(btn => {
+    btn.addEventListener('click', () => rejectDoc(btn.dataset.docId, btn.dataset.accountId));
+  });
 }
 
 async function getDocUrl(path, docId) {
@@ -191,7 +209,7 @@ async function getDocUrl(path, docId) {
   el.textContent = '(enlace válido 1h)';
 }
 
-async function approveDoc(docId, accountId, userId) {
+async function approveDoc(docId, accountId) {
   const msg = document.getElementById(`action-msg-${docId}`);
   msg.textContent = 'Aprobando...';
   msg.style.color = 'var(--muted)';
@@ -213,8 +231,8 @@ async function approveDoc(docId, accountId, userId) {
     return;
   }
 
-  const { data: userData } = await sb.auth.admin?.getUserById?.(userId) ?? { data: null };
-  const email = userData?.user?.email ?? null;
+  const { data: bizData } = await sb.from('business_accounts').select('email').eq('id', accountId).maybeSingle();
+  const email = bizData?.email ?? null;
 
   if (email) {
     await sendEmailNotification(
@@ -237,7 +255,7 @@ function toggleReject(docId) {
   document.getElementById(`rf-${docId}`).classList.toggle('open');
 }
 
-async function rejectDoc(docId, accountId, userId) {
+async function rejectDoc(docId, accountId) {
   const motivo = document.getElementById(`rt-${docId}`).value.trim();
   const msg    = document.getElementById(`rm-${docId}`);
 
@@ -250,8 +268,8 @@ async function rejectDoc(docId, accountId, userId) {
 
   if (e1 || e2) { msg.textContent = 'Error. Revisa la consola.'; console.error(e1, e2); return; }
 
-  const { data: userData } = await sb.auth.admin?.getUserById?.(userId) ?? { data: null };
-  const email = userData?.user?.email ?? null;
+  const { data: bizData } = await sb.from('business_accounts').select('email').eq('id', accountId).maybeSingle();
+  const email = bizData?.email ?? null;
 
   if (email) {
     await sendEmailNotification(

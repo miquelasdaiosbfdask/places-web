@@ -1241,7 +1241,8 @@ function setupScrollSpy() {
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.replace('/business/login'); return; }
-  if (session.user.email !== ADMIN_EMAIL) { showAccessDenied(); return; }
+  const { data: isAdmin } = await sb.from('admin_users').select('user_id').eq('user_id', session.user.id).maybeSingle();
+  if (!isAdmin) { showAccessDenied(); return; }
   set('sidebar-email', esc(session.user.email));
   await loadCities();
   await applyFilters();

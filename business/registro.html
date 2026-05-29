@@ -172,6 +172,10 @@
       alerts.innerHTML = '<div class="alert alert-error">El email no tiene un formato válido.</div>';
       return;
     }
+    if (!/^[ABCDEFGHJKLMNPQRSUVW]\d{7}[0-9A-J]$/i.test(cif.trim())) {
+      alerts.innerHTML = '<div class="alert alert-error">El CIF no tiene un formato válido. Ejemplo: B12345678</div>';
+      return;
+    }
 
     btn.textContent = '...';
     btn.disabled    = true;
@@ -204,10 +208,6 @@
     const accessToken  = userSession?.access_token ?? SUPABASE_KEY;
     const sessionAvail = !!userSession;
 
-    console.log('[registro] signUp OK — user_id:', userId);
-    console.log('[registro] Session returned by signUp:', sessionAvail,
-      sessionAvail ? '(email confirmation OFF — good)' : '(email confirmation ON — using anon key as fallback)');
-    console.log('[registro] Inserting into business_accounts...');
 
     let insertedId = null;
     try {
@@ -235,8 +235,6 @@
       });
 
       const insertBody = await insertRes.json();
-      console.log('[registro] Insert HTTP status:', insertRes.status);
-      console.log('[registro] Insert response body:', insertBody);
 
       if (!insertRes.ok) {
         const errMsg  = insertBody?.message ?? insertBody?.error_description ?? insertBody?.error ?? JSON.stringify(insertBody);
@@ -263,7 +261,6 @@
       // Success — extract the inserted row's id
       const row = Array.isArray(insertBody) ? insertBody[0] : insertBody;
       insertedId = row?.id ?? null;
-      console.log('[registro] Insert OK — business_id:', insertedId);
 
     } catch (fetchErr) {
       console.error('[registro] Network error during insert:', fetchErr);
@@ -280,9 +277,6 @@
         access_token:  userSession.access_token,
         refresh_token: userSession.refresh_token
       });
-      console.log('[registro] Session set in Supabase client — user will arrive at dashboard authenticated.');
-    } else {
-      console.warn('[registro] No session from signUp — user will need to log in after email confirmation.');
     }
 
     // Store business_id for verificacion.html (fallback when session is delayed)

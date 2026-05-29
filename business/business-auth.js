@@ -20,7 +20,8 @@ async function requireAuth() {
 async function requireAdmin() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.replace('/business/login'); return null; }
-  if (session.user.email !== ADMIN_EMAIL) { window.location.replace('/business/dashboard'); return null; }
+  const { data: isAdmin } = await sb.from('admin_users').select('user_id').eq('user_id', session.user.id).maybeSingle();
+  if (!isAdmin) { window.location.replace('/business/login'); return null; }
   return session;
 }
 
@@ -129,19 +130,28 @@ function buildSidebar(account, activePage) {
 
 async function sendEmailNotification(to, subject, body) {
   try {
+    const { data: { session } } = await sb.auth.getSession();
     const res = await fetch(`${SUPABASE_URL}/functions/v1/send-business-email`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token ?? SUPABASE_KEY}` },
       body: JSON.stringify({ to, subject, body })
     });
     if (!res.ok) throw new Error('non-ok');
-  } catch (e) {
-    // Edge function not yet deployed — log and continue, do not break flow
-    console.log('[email] Not sent yet (edge function pending):', subject, '→', to);
+  } catch {
+    // Edge function not yet deployed — continue, do not break flow
   }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
 
 function formatDate(iso) {
   if (!iso) return '';
