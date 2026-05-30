@@ -459,9 +459,18 @@ function updatePeriodIndicator() {
 }
 
 async function loadCities() {
-  const { data } = await sb.from('profiles').select('city').eq('role', 'user').neq('city', null).limit(5000);
-  if (!data) return;
-  const cities = [...new Set(data.map(p => p.city).filter(Boolean))].sort();
+  const { data: cityData } = await sb
+    .from('posts')
+    .select('address')
+    .not('address', 'is', null)
+    .limit(1000);
+
+  const cities = [...new Set(
+    (cityData ?? [])
+      .map(p => p.address?.split(',').pop()?.trim())
+      .filter(Boolean)
+  )].sort();
+
   const sel = document.getElementById('filter-city');
   cities.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
 }
