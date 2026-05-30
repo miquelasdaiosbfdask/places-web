@@ -406,7 +406,7 @@ async function fetchExcludedProfileIds() {
 
 function appUsersFilter(q) {
   if (!excludedProfileIds.length) return q;
-  return q.not('id', 'in', `(${excludedProfileIds.join(',')})`);
+  return q.filter('id', 'not.in', `(${excludedProfileIds.join(',')})`);
 }
 
 // ── Basic helpers ─────────────────────────────────────────────────────────────
