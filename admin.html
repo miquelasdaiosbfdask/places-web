@@ -390,6 +390,25 @@ let leafletMap = null;
 const charts = {};
 const tables = {};
 
+// Profile IDs to exclude from app-user queries (business accounts + admins)
+let excludedProfileIds = [];
+
+async function fetchExcludedProfileIds() {
+  const [{ data: bizIds }, { data: adminIds }] = await Promise.all([
+    sb.from('business_accounts').select('id'),
+    sb.from('admin_users').select('user_id'),
+  ]);
+  excludedProfileIds = [
+    ...(bizIds ?? []).map(r => r.id),
+    ...(adminIds ?? []).map(r => r.user_id),
+  ];
+}
+
+function appUsersFilter(q) {
+  if (!excludedProfileIds.length) return q;
+  return q.not('id', 'in', `(${excludedProfileIds.join(',')})`);
+}
+
 // ── Basic helpers ─────────────────────────────────────────────────────────────
 function fmt(n) { if (n === null || n === undefined) return '—'; return Number(n).toLocaleString('es-ES'); }
 function fmtDec(n, d = 1) { if (n === null || n === undefined || isNaN(n)) return '—'; return Number(n).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }); }
@@ -457,7 +476,7 @@ function updatePeriodIndicator() {
 }
 
 async function loadCities() {
-  const { data } = await sb.from('profiles').select('city').not('username','is',null).not('city', 'is', null).limit(5000);
+  const { data } = await appUsersFilter(sb.from('profiles').select('city')).not('city', 'is', null).limit(5000);
   if (!data) return;
   const cities = [...new Set(data.map(p => p.city).filter(Boolean))].sort();
   const sel = document.getElementById('filter-city');
@@ -479,7 +498,7 @@ async function applyFilters() {
   F.city = city || null;
 
   if (F.city) {
-    const { data } = await sb.from('profiles').select('id').not('username','is',null).eq('city', F.city).limit(200);
+    const { data } = await appUsersFilter(sb.from('profiles').select('id')).eq('city', F.city).limit(200);
     F.userIds = data ? data.map(p => p.id) : [];
   } else {
     F.userIds = null;
@@ -650,8 +669,8 @@ async function loadResumen() {
     sessCloseRes, pSessCloseRes,
     postViewRes,
   ] = await Promise.allSettled([
-    (() => { let q = sb.from('profiles').select('*',{count:'exact',head:true}).not('username','is',null).gte('created_at',F.from).lte('created_at',F.to); if(F.city) q=q.eq('city',F.city); return q; })(),
-    (() => { let q = sb.from('profiles').select('*',{count:'exact',head:true}).not('username','is',null).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.city) q=q.eq('city',F.city); return q; })(),
+    (() => { let q = appUsersFilter(sb.from('profiles').select('*',{count:'exact',head:true})).gte('created_at',F.from).lte('created_at',F.to); if(F.city) q=q.eq('city',F.city); return q; })(),
+    (() => { let q = appUsersFilter(sb.from('profiles').select('*',{count:'exact',head:true})).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.city) q=q.eq('city',F.city); return q; })(),
     (() => { let q = sb.from('posts').select('*',{count:'exact',head:true}).gte('created_at',F.from).lte('created_at',F.to); if(F.city) q=q.ilike('address',`%${F.city}%`); return q; })(),
     (() => { let q = sb.from('posts').select('*',{count:'exact',head:true}).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.city) q=q.ilike('address',`%${F.city}%`); return q; })(),
     (() => { let q = sb.from('posts').select('restaurant').gte('created_at',F.from).lte('created_at',F.to).limit(5000); if(F.city) q=q.ilike('address',`%${F.city}%`); return q; })(),
@@ -713,9 +732,8 @@ async function loadUsuarios() {
   const d30p= new Date(today.getTime() - 59*DAY).toISOString();
   const todayISO = today.toISOString();
 
-  // Only count real app users — profiles always have a username (onboarding step 2)
   const uFilter = q => {
-    const r = q.not('username', 'is', null);
+    const r = appUsersFilter(q);
     return F.city ? r.eq('city', F.city) : r;
   };
   const evFilter = (q, from) => {
@@ -784,7 +802,7 @@ async function loadUsuarios() {
 
 async function loadCohortRetention() {
   const eightWeeksAgo = new Date(Date.now() - 56*86400000).toISOString();
-  const { data: profiles } = await sb.from('profiles').select('id, created_at').not('username','is',null).gte('created_at', eightWeeksAgo).limit(500);
+  const { data: profiles } = await appUsersFilter(sb.from('profiles').select('id, created_at')).gte('created_at', eightWeeksAgo).limit(500);
   if (!profiles || !profiles.length) { set('cohort-tbody','<tr><td colspan="6" style="color:rgba(245,240,232,.35);padding:12px;text-align:center">Sin datos</td></tr>'); return; }
 
   const ids = profiles.map(p=>p.id).slice(0,100);
@@ -927,7 +945,7 @@ async function loadComportamiento() {
 async function loadTimeToFirstPost() {
   const ago90 = new Date(Date.now()-90*86400000).toISOString();
   const [pRes, postsRes] = await Promise.allSettled([
-    sb.from('profiles').select('id, created_at').not('username','is',null).gte('created_at', ago90).limit(500),
+    appUsersFilter(sb.from('profiles').select('id, created_at')).gte('created_at', ago90).limit(500),
     sb.from('posts').select('user_id, created_at').gte('created_at', ago90).order('created_at',{ascending:true}).limit(5000),
   ]);
   const profiles = pRes.status==='fulfilled' ? pRes.value.data||[] : [];
@@ -945,11 +963,11 @@ async function loadContenido() {
     (() => { let q=sb.from('posts').select('*',{count:'exact',head:true}).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.city)q=q.ilike('address',`%${F.city}%`); return q; })(),
     (() => { let q=sb.from('posts').select('created_at, selfie_url, restaurant, dish_tags').gte('created_at',F.from).lte('created_at',F.to).limit(5000); if(F.city)q=q.ilike('address',`%${F.city}%`); return q; })(),
     (() => { let q=sb.from('posts').select('selfie_url').gte('created_at',F.prevFrom).lte('created_at',F.prevTo).limit(5000); if(F.city)q=q.ilike('address',`%${F.city}%`); return q; })(),
-    sb.from('profiles').select('*',{count:'exact',head:true}).not('username','is',null),
+    appUsersFilter(sb.from('profiles').select('*',{count:'exact',head:true})),
     // conversion: restaurant_viewed vs quiero_ir_tapped
     (() => { let q=sb.from('user_events').select('event_type').in('event_type',['restaurant_viewed','quiero_ir_tapped']).gte('created_at',F.from).lte('created_at',F.to); if(F.userIds)q=q.in('user_id',F.userIds); return q; })(),
     (() => { let q=sb.from('user_events').select('event_type').in('event_type',['restaurant_viewed','quiero_ir_tapped']).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.userIds)q=q.in('user_id',F.userIds); return q; })(),
-    sb.from('profiles').select('*',{count:'exact',head:true}).not('username','is',null), // placeholder
+    appUsersFilter(sb.from('profiles').select('*',{count:'exact',head:true})), // placeholder
   ]);
 
   const total = totRes.status==='fulfilled' ? totRes.value.count : null;
@@ -1011,7 +1029,7 @@ async function loadSocial() {
     sb.from('comments').select('*',{count:'exact',head:true}).gte('created_at',F.from).lte('created_at',F.to),
     sb.from('saved_posts').select('*',{count:'exact',head:true}).gte('created_at',F.from).lte('created_at',F.to),
     sb.from('posts').select('*',{count:'exact',head:true}),
-    sb.from('profiles').select('*',{count:'exact',head:true}).not('username','is',null),
+    appUsersFilter(sb.from('profiles').select('*',{count:'exact',head:true})),
     sb.from('friendships').select('sender_id, receiver_id').eq('status','accepted'),
     (() => { let q=sb.from('user_events').select('event_type').in('event_type',['friend_request_sent','friend_request_accepted','friend_request_rejected']).gte('created_at',F.from).lte('created_at',F.to); if(F.userIds)q=q.in('user_id',F.userIds); return q; })(),
     (() => { let q=sb.from('user_events').select('event_type').in('event_type',['friend_request_sent','friend_request_accepted','friend_request_rejected']).gte('created_at',F.prevFrom).lte('created_at',F.prevTo); if(F.userIds)q=q.in('user_id',F.userIds); return q; })(),
@@ -1248,6 +1266,7 @@ async function init() {
   const { data: isAdmin } = await sb.from('admin_users').select('user_id').eq('user_id', session.user.id).maybeSingle();
   if (!isAdmin) { showAccessDenied(); return; }
   set('sidebar-email', esc(session.user.email));
+  await fetchExcludedProfileIds();
   await loadCities();
   await applyFilters();
   setupScrollSpy();
