@@ -406,7 +406,8 @@ async function fetchExcludedProfileIds() {
 
 function appUsersFilter(q) {
   if (!excludedProfileIds.length) return q;
-  return q.filter('id', 'not.in', `(${excludedProfileIds.join(',')})`);
+  // .not() generates: id=not.in.(uuid1,uuid2,...) — PostgREST parses this correctly
+  return q.not('id', 'in', `(${excludedProfileIds.join(',')})`);
 }
 
 // ── Basic helpers ─────────────────────────────────────────────────────────────
