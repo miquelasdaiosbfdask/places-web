@@ -103,10 +103,7 @@ const REASON_LABELS = {
 
 async function init() {
   const session = await requireAdmin();
-  if (!session) return;
-
-  const { data: isAdmin } = await sb.from('admin_users').select('user_id').eq('user_id', session.user.id).maybeSingle();
-  if (!isAdmin) { window.location.replace('/business/login'); return; }
+  if (!session) return; // requireAdmin already handled redirect or denial screen
 
   document.getElementById('sidebar-mount').innerHTML = buildSidebar(
     { restaurant_name: 'Admin', status: 'verified', plan: 'premium' },

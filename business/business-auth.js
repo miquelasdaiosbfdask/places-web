@@ -20,8 +20,37 @@ async function requireAuth() {
 async function requireAdmin() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.replace('/business/login'); return null; }
-  const { data: isAdmin } = await sb.from('admin_users').select('user_id').eq('user_id', session.user.id).maybeSingle();
-  if (!isAdmin) { window.location.replace('/business/login'); return null; }
+
+  const { data: adminRow } = await sb
+    .from('admin_users')
+    .select('user_id')
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+
+  if (!adminRow) {
+    // Authenticated but not an admin — show denial screen instead of redirecting to login
+    document.body.innerHTML = `
+      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;
+        justify-content:center;background:#0e0d0c;font-family:'DM Sans',sans-serif;
+        gap:16px;text-align:center;padding:32px">
+        <div style="font-size:40px;color:rgba(245,240,232,0.12)">⊘</div>
+        <h1 style="color:#F5F0E8;font-size:20px;font-weight:500;margin:0">Acceso denegado</h1>
+        <p style="color:rgba(245,240,232,0.45);font-size:14px;margin:0;max-width:320px;line-height:1.6">
+          Tu cuenta no tiene permisos de administración de Yumlist.
+        </p>
+        <button onclick="doSignOut()"
+          style="margin-top:8px;background:rgba(245,240,232,0.06);color:#F5F0E8;
+            border:0.5px solid rgba(245,240,232,0.18);border-radius:8px;
+            padding:10px 22px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;
+            transition:background .2s"
+          onmouseover="this.style.background='rgba(245,240,232,0.12)'"
+          onmouseout="this.style.background='rgba(245,240,232,0.06)'">
+          Cerrar sesión
+        </button>
+      </div>`;
+    return null;
+  }
+
   return session;
 }
 
