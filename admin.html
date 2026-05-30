@@ -459,7 +459,7 @@ function updatePeriodIndicator() {
 }
 
 async function loadCities() {
-  const { data } = await sb.from('profiles').select('city').eq('role', 'user').not('city', 'is', null).limit(5000);
+  const { data } = await sb.from('profiles').select('city').eq('role', 'user').neq('city', null).limit(5000);
   if (!data) return;
   const cities = [...new Set(data.map(p => p.city).filter(Boolean))].sort();
   const sel = document.getElementById('filter-city');
